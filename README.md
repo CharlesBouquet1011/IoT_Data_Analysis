@@ -1,0 +1,1 @@
+récupérer les données du JSON res_114781.json pour l'IoT et les mettre dans le dossier (NE PAS LES PUSH)
