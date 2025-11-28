@@ -70,7 +70,6 @@ def plot_timeSeries(df:pd.DataFrame,attrs:list,begin=None,end=None):
     else:
         subset=df.loc[:end]
     #on garde que les valeurs dans l'intervalle si le début et la fin sont définies
-    print(len(subset))
     for attr in attrs:
         plt.figure()
         subset[attr].plot()
