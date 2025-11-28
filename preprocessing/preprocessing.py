@@ -1,3 +1,6 @@
+"""
+Fichier principal de preprocessing
+"""
 import tkinter as tk
 from tkinter import ttk
 import pandas as pd
@@ -47,7 +50,7 @@ window = [1200, 700] # Taille de la fenêtre principale et dataframe
 datas = os.path.join(script_dir, "flattened_datas.json")
 df = pd.read_json(datas)
 
-def produce_dataset():
+def produce_dataset_TKinter():
     global df
     if verbose: verbose_window.see(tk.END); verbose_window.insert(tk.END, "Producing custom dataset\n") # VERBOSE début !
 
@@ -429,7 +432,7 @@ filter_apply_button.place(x=850, y=120)
 execute_label = tk.Label(root, text="Generate custom dataset with selected attributes", font=("Helvetica", 12, "bold"))
 execute_label.place(x=window[0]//2-400, y=400, anchor=tk.CENTER)
 
-execute_button = tk.Button(root, text="GENERATE DATASET", width=30, bg="orange", font=("Helvetica", 12, "bold"), command=produce_dataset)
+execute_button = tk.Button(root, text="GENERATE DATASET", width=30, bg="orange", font=("Helvetica", 12, "bold"), command=produce_dataset_TKinter)
 execute_button.place(x=window[0]//2-400, y=430, anchor=tk.CENTER)
 
 del_button = tk.Button(root, text="DELETE CUSTOM DATASET", width=25, bg="red", fg="white", font=("Helvetica", 8, "bold"), command=lambda: [os.remove(os.path.join(script_dir, "custom_dataset.json")), check_file_presence()] if os.path.exists(os.path.join(script_dir, "custom_dataset.json")) else None)
