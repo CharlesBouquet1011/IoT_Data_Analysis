@@ -4,6 +4,9 @@ import pandas as pd
 import json as j
 import os
 
+# Get the script directory for relative file paths
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
 verbose = False
 def toggle_verbose():
     global verbose
@@ -13,7 +16,7 @@ def toggle_verbose():
     verbose_window.see(tk.END)
 
 def check_file_presence():
-    if os.path.exists("custom_dataset.json"):
+    if os.path.exists(os.path.join(script_dir, "custom_dataset.json")):
         processed_button.config(state=tk.NORMAL); del_button.config(state=tk.NORMAL)
         processed_button.config(bg="orange"); del_button.config(bg="red")
         root.after(20, check_file_presence)
@@ -41,7 +44,7 @@ def check_undefined_status():
 window = [1200, 700] # Taille de la fenêtre principale et dataframe
 
 # Convertir le json en DataFrame pandas
-datas = "flattened_datas.json"
+datas = os.path.join(script_dir, "flattened_datas.json")
 df = pd.read_json(datas)
 
 def produce_dataset():
@@ -62,13 +65,13 @@ def produce_dataset():
         for attr in selected_attrs:
             if pd.api.types.is_numeric_dtype(custom_df[attr]):
                 mean = custom_df[attr].mean()
-                threshold = (outlier_threshold.get() / 100) * mean
+                std_dev = custom_df[attr].std()
                 initial_count = len(custom_df)
-                custom_df = custom_df[(custom_df[attr] >= mean - threshold) & (custom_df[attr] <= mean + threshold)]
-                if verbose: verbose_window.see(tk.END); verbose_window.insert(tk.END, f"Removed {initial_count - len(custom_df)} outliers from attribute '{attr}'.\n") # VERBOSE affichage du nombre de paquets supprimés pour chaque attribut
+                custom_df = custom_df[(custom_df[attr] >= mean - outlier_threshold.get() * std_dev) & (custom_df[attr] <= mean + outlier_threshold.get() * std_dev)]
+                if verbose: verbose_window.see(tk.END); verbose_window.insert(tk.END, f"Removed {initial_count - len(custom_df)} packets outside {outlier_threshold.get()} standard deviations for attribute '{attr}'.\n") # VERBOSE affichage du nombre de paquets supprimés pour chaque attribut
 
     if verbose: verbose_window.see(tk.END); verbose_window.insert(tk.END, f"Remaining packets after processing: {len(custom_df)}\n") # VERBOSE sauvegarde du dataset
-    custom_df.to_json("custom_dataset.json", orient="records", indent=2)
+    custom_df.to_json(os.path.join(script_dir, "custom_dataset.json"), orient="records", indent=2)
     verbose_window.see(tk.END); verbose_window.insert(tk.END, "custom_dataset.json generated successfully.\n") # VERBOSE terminé !
 
 ###############################
@@ -280,7 +283,7 @@ def open_dataframe_window():
 # DATAFRAME RAFFINÉ
 
 def open_processed_dataframe_window():
-    processed_datas = "custom_dataset.json"
+    processed_datas = os.path.join(script_dir, "custom_dataset.json")
     processed_df = pd.read_json(processed_datas)
 
     win = tk.Toplevel(root)
@@ -332,7 +335,7 @@ title = tk.Label(root, text="DATAS PRE-PROCESSING TOOL", font=("Helvetica", 18, 
 title.place(x=window[0]//2, y=20, anchor=tk.CENTER)
 
 # Récupérer les attributs du json
-with open('flattened_datas.json', 'r') as f:
+with open(os.path.join(script_dir, 'flattened_datas.json'), 'r') as f:
     data = j.load(f)
     attributes = list(data[0].keys())
     if verbose: verbose_window.see(tk.END); verbose_window.insert(tk.END, f"Attributes available in the JSON: {attributes}\n") # VERBOSE affichage des caractéristiques des paquets
@@ -378,9 +381,9 @@ undefined_button.place(x=500, y=100)
 # Bouton valeurs abberrantes
 outlier_label = tk.Label(root, text="Handle outlier values", font=("Helvetica", 12, "bold"))
 outlier_label.place(x=500, y=150)
-outlier_description = tk.Label(root, text="Remove packets with more than n percent excess", font=("Helvetica", 8))
+outlier_description = tk.Label(root, text="Remove packets with a distance from the mean", font=("Helvetica", 8))
 outlier_description.place(x=500, y=175)
-outlier_description = tk.Label(root, text="or drop compared to the average", font=("Helvetica", 8))
+outlier_description = tk.Label(root, text="greater than n standard deviations", font=("Helvetica", 8))
 outlier_description.place(x=500, y=190)
 outlier_button = tk.Button(root, text="OUTLIER VALUES HANDLING", width=30, bg="red", fg="white", font=("Helvetica", 10, "bold"), command=lambda: toggle_outliers())
 outlier_button.place(x=500, y=215)
@@ -390,7 +393,7 @@ outlier_description2.place(x=480, y=285)
 
 outlier_unit_label = tk.Label(root, text="n", font=("Helvetica", 10, "bold"))
 outlier_unit_label.place(x=500, y=263)
-outlier_threshold = tk.Scale(root, from_=0, to=100, orient=tk.HORIZONTAL, length=230)
+outlier_threshold = tk.Scale(root, from_=0, to=10, orient=tk.HORIZONTAL, length=230)
 outlier_threshold.place(x=520, y=245)
 
 outlier_toggle = tk.BooleanVar(value=False)
@@ -429,7 +432,7 @@ execute_label.place(x=window[0]//2-400, y=400, anchor=tk.CENTER)
 execute_button = tk.Button(root, text="GENERATE DATASET", width=30, bg="orange", font=("Helvetica", 12, "bold"), command=produce_dataset)
 execute_button.place(x=window[0]//2-400, y=430, anchor=tk.CENTER)
 
-del_button = tk.Button(root, text="DELETE CUSTOM DATASET", width=25, bg="red", fg="white", font=("Helvetica", 8, "bold"), command=lambda: [os.remove("custom_dataset.json"), check_file_presence()] if os.path.exists("custom_dataset.json") else None)
+del_button = tk.Button(root, text="DELETE CUSTOM DATASET", width=25, bg="red", fg="white", font=("Helvetica", 8, "bold"), command=lambda: [os.remove(os.path.join(script_dir, "custom_dataset.json")), check_file_presence()] if os.path.exists(os.path.join(script_dir, "custom_dataset.json")) else None)
 del_button.place(x=window[0]//2-400, y=470, anchor=tk.CENTER)
 
 # Bouton pour afficher le DataFrame dans une nouvelle fenêtre

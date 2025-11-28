@@ -1,7 +1,11 @@
 import json
+import os
 
 def flatten_datas(file):
-    with open(file, "r") as f:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(script_dir, file)
+
+    with open(file_path, "r") as f:
         data = json.load(f)
     output = []
     for timestamp, packets in data.items():
@@ -21,7 +25,8 @@ def flatten_datas(file):
             else:
                 flat[k] = None
         output.append(flat)
-    with open("flattened_datas.json", "w") as f:
+    output_path = os.path.join(script_dir, "flattened_datas.json")
+    with open(output_path, "w") as f:
         json.dump(output, f, indent=2)
 
-flatten_datas("res_114781.json")
+flatten_datas("raw_datas.json")
