@@ -44,7 +44,7 @@ L'activation de cette option entraîne la suppression de toutes les entrées qui
 
 **Gestion des valeurs abberantes**
 
-L'activation de cette option permet le réglage d'un seuil. Toutes les entrées étant plus éloignées que le seuil par rapport à la moyenne sont supprimées.
+L'activation de cette option permet le réglage d'une valeur n. Toutes les entrées étant plus éloignées que n fois l'écart type par rapport à la moyenne sont supprimées.
 
 *Note : Il est possible de visualiser combien et sur quels attributs les données ont été supprimées en activant le mode verbose.*
 
