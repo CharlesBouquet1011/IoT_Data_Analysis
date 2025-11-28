@@ -41,9 +41,22 @@ def produce_dataset(df:pd.DataFrame,verbose:bool,undefined_toggle:bool,outlier_t
                 q1=custom_df[attr].rolling(duree).quantile(0.25) #premier quartile  (fenêtre glissante)
                 q3=custom_df[attr].rolling(duree).quantile(0.75)#dernier quartile (fenêtre glissante)
                 IQRange=q3-q1   #écart interquartile
-                custom_df["outlier"]=custom_df["outlier"] | custom_df[attr]<=(q1-1.5*IQRange) | custom_df[attr]>=(q3+1.5*IQRange) 
+                custom_df["outlier"]=(custom_df["outlier"]) | (custom_df[attr]<=(q1-1.5*IQRange)) | (custom_df[attr]>=(q3+1.5*IQRange)) 
         custom_df=custom_df[~ custom_df["outlier"]]
         
     if verbose: print(f"Remaining packets after processing: {len(custom_df)}") # VERBOSE sauvegarde du dataset
-    custom_df.to_json(fichier_sortie, orient="records", indent=2)
+    custom_df.to_json("./"+fichier_sortie, orient="index", indent=2) #il faudra readJson avec orient="index"
     print("custom_dataset.json generated successfully.") # VERBOSE terminé !
+
+
+def open_df(fichier:str)->pd.DataFrame:
+    df= pd.read_json(fichier)
+    df.set_index("@timestamp",inplace=True) #Pandas autorise d'avoir des index non uniques donc ça ne posera pas problème quoi qu'il arrive
+    return df
+
+if __name__=="__main__":
+    #tests
+    df=open_df("preprocessing/flattened_datas.json")
+    print(df)
+    produce_dataset(df,True,True,True,30,["Airtime","BitRate","rssi","lsnr"],"preprocessing/nettoye.json")
+    
