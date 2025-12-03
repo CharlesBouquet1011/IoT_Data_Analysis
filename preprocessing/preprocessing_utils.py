@@ -1,7 +1,10 @@
 """
 Fichier regroupant toutes les fonctions utiles au preprocessing des donnes
 """
-
+from flatten_datas import flatten_datas
+from query_elk import download_data
+from datetime import datetime
+from useData import Ouvre_Json
 import pandas as pd
 import os
 import datetime
@@ -51,17 +54,16 @@ def produce_dataset(df:pd.DataFrame,verbose:bool,undefined_toggle:bool,outlier_t
     print("custom_dataset.json generated successfully.") # VERBOSE terminé !
     return df #au cas où
 
-def open_df(fichier:str)->pd.DataFrame:
-    df= pd.read_json(fichier)
-    df["@timestamp"]=pd.to_datetime(df["@timestamp"])
-    df.set_index("@timestamp",inplace=True) #Pandas autorise d'avoir des index non uniques donc ça ne posera pas problème quoi qu'il arrive
-    return df
+
 
 def plot_timeSeries(df:pd.DataFrame,attrs:list,begin=None,end=None):
+    """
+    Le nom est explicite
+    """
     t=datetime.datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
     
     CurrentDir = os.path.dirname(os.path.abspath(__file__))
-    plotDir=os.path.join(CurrentDir,t)
+    plotDir=os.path.join(CurrentDir,"Export",t)
     os.makedirs(plotDir)
     if begin is not None:
         subset=df.loc[begin:]
@@ -74,12 +76,55 @@ def plot_timeSeries(df:pd.DataFrame,attrs:list,begin=None,end=None):
         plt.figure()
         subset[attr].plot()
         plt.savefig(os.path.join(plotDir,attr))
-    
 
+def calcul_Gte_Lt(year:int,month:int):
+    """
+    Prend en paramètre l'année et le mois concerné (des entiers)
+    """
+    premierJour= datetime(year,month,1,0,0,0) #premier jour du mois
+    #calcul du mois suivant
+    if month==12:
+        month=1
+        year+=1
+    else:
+        month+=1
+    DernierJour=datetime(year,month,1,0,0,0)
+    return premierJour.isoformat(),DernierJour.isoformat()
+
+def prepare_data(year:int,month:int,rolling_interval,attrList:list):
+    """
+    Crée des répertoires contenant les données rangées
+    """
+    gte,lt=calcul_Gte_Lt(year,month)
+    file=download_data(gte,lt,year,month)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    os.makedirs(os.path.join(script_dir),"flattened",year,exist_ok=True)
+    flat_output_path=os.path.join(script_dir,"flattened",year,month+".json")
+    flatten_datas(file,flat_output_path)
+    file=flat_output_path
+    df=open_df_flattened(file)
+    os.makedirs(os.path.join(script_dir,"Data",year),exist_ok=True)
+    outputFile=os.path.join(script_dir,"Data",year,month+".json")
+    df=produce_dataset(df,True,True,True,rolling_interval,attrList,outputFile)
+
+def open_df_flattened(fichier:str)->pd.DataFrame:
+    """
+    Docstring for open_df
+    
+    :param fichier: chemin du fichier flattened
+    :type fichier: str
+    :return: dataframe correspondant à ce fichier
+    :rtype: DataFrame
+    """
+
+    df= pd.read_json(fichier)
+    df["@timestamp"]=pd.to_datetime(df["@timestamp"])
+    df.set_index("@timestamp",inplace=True) #Pandas autorise d'avoir des index non uniques donc ça ne posera pas problème quoi qu'il arrive
+    return df
 
 if __name__=="__main__":
     #tests
-    df=open_df("preprocessing/flattened_datas.json")
+    df=open_df_flattened("preprocessing/flattened_datas.json")
     print(df)
     df=produce_dataset(df,True,True,True,30,["Airtime","BitRate","rssi","lsnr"],"preprocessing/nettoye.json")
     print(df)

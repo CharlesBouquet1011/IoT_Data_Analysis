@@ -1,7 +1,14 @@
+"""
+Functions:
+flatten_datas:
+applatit le json en entrée et en crée un en sortie
+"""
+
+
 import json
 import os
 
-def flatten_datas(file):
+def flatten_datas(file:str,output_path):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(script_dir, file)
 
@@ -25,8 +32,5 @@ def flatten_datas(file):
             else:
                 flat[k] = None
         output.append(flat)
-    output_path = os.path.join(script_dir, "flattened_datas.json")
     with open(output_path, "w") as f:
         json.dump(output, f, indent=2)
-
-flatten_datas("raw_datas.json")

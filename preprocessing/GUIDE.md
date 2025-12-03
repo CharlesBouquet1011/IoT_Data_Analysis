@@ -59,3 +59,6 @@ Le bouton de gauche permet de générer le dataset personnalisé respectant tout
 Le bouton du milieu permet de visualiser le dataset complet et celui de droite le dataset personnalisé.
 
 Un export est automatiquement effectué en JSON au moment de la génération du dataset.
+
+# Fonctionnement sans interface graphique:
+`python3 automaticPreProcessing.py`
