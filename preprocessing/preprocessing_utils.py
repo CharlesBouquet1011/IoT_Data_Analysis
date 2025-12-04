@@ -7,10 +7,8 @@ from flatten_datas import flatten_datas
 from query_elk import download_data
 from datetime import datetime
 from txtUtils import write_log_removed
-from useData import Ouvre_Json
 import pandas as pd
 import os
-import datetime
 import matplotlib
 matplotlib.use('Agg') #backend non interactif
 import matplotlib.pyplot as plt
@@ -97,17 +95,7 @@ def calcul_Gte_Lt(year:int,month:int):
     DernierJour=datetime(year,month,1,0,0,0)
     return premierJour.isoformat(),DernierJour.isoformat()
 
-def retrieve_values(df:pd.DataFrame,column:str)->list:
-    """
-    Docstring for retrieve_values
-    Récupère les valeurs d'une colonne donnée
 
-    :param df: Le Dataframe concerné
-    :type df: pd.DataFrame
-    :param column: La colonne concernée
-    :type column: str
-    """
-    return [value for value in df[column]]
 
 def sub_df_by_column(df:pd.DataFrame,column:str)->dict:
     """
@@ -119,13 +107,8 @@ def sub_df_by_column(df:pd.DataFrame,column:str)->dict:
     :param column: Description
     :type column: str
     """
-    values=retrieve_values(df,column)
-    dfs={}
-    values=set(values) #cache
-    propre=df.dropna(subset=[column])
-    for value in values:
-        dfs[value]=df[df[column]==value]
-    return dfs
+    groupe=df.groupby(column)
+    return {Cat:val for Cat, val in groupe}
 
 def prepare_data(year:int,month:int,rolling_interval,attrList:list):
     """
@@ -166,6 +149,6 @@ if __name__=="__main__":
     #tests
     df=open_df_flattened("preprocessing/flattened_datas.json")
     print(df)
-    df=produce_dataset(df,True,True,True,30,["Airtime","BitRate","rssi","lsnr"],"preprocessing/nettoye.json")
+    df=produce_dataset(df,True,True,True,30,["BitRate","rssi","lsnr"],"preprocessing/nettoye.json")
     print(df)
     plot_timeSeries(df,["Airtime","BitRate","rssi","lsnr"],pd.to_datetime("2023-10-12T19:42:00.723Z"))
