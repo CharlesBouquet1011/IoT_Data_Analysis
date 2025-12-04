@@ -1,5 +1,6 @@
 """
 Fichier principal de preprocessing
+By Titouan Verdier
 """
 import tkinter as tk
 from tkinter import ttk

@@ -1,3 +1,8 @@
+"""
+By Charles Bouquet
+Docstring for preprocessing.useData
+"""
+
 import pandas as pd
 import os
 def open_processed_df(file:str):

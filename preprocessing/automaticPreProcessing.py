@@ -1,8 +1,14 @@
+"""
+Docstring for preprocessing.automaticPreProcessing
+
+"""
+
+
 from preprocessing_utils import prepare_data
 
 def main(rolling_interval=30,list_attr=["Airtime","BitRate","rssi","lsnr"]):
-    months=[i for i in range(1,13)]
-    years=[i for i in range(2019,2026)]
+    months=[i for i in range(12,13)]
+    years=[i for i in range(2025,2026)]
     for year in years:
         for month in months:
             prepare_data(year,month,rolling_interval,list_attr )

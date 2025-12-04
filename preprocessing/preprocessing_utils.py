@@ -1,9 +1,12 @@
 """
 Fichier regroupant toutes les fonctions utiles au preprocessing des donnes
+
+By Charles Bouquet
 """
 from flatten_datas import flatten_datas
 from query_elk import download_data
 from datetime import datetime
+from txtUtils import write_log_removed
 from useData import Ouvre_Json
 import pandas as pd
 import os
@@ -13,7 +16,7 @@ matplotlib.use('Agg') #backend non interactif
 import matplotlib.pyplot as plt
 #en forme de procédure pour la lisibilité
 
-def produce_dataset(df:pd.DataFrame,verbose:bool,undefined_toggle:bool,outlier_toggle:bool,duree,selected_attrs:list,fichier_sortie:str):
+def produce_dataset(df:pd.DataFrame,verbose:bool,undefined_toggle:bool,outlier_toggle:bool,duree,selected_attrs:list,fichier_sortie:str,Type:str):
     """
     
 
@@ -33,8 +36,10 @@ def produce_dataset(df:pd.DataFrame,verbose:bool,undefined_toggle:bool,outlier_t
     if undefined_toggle:
         initial_count = len(df)
         df.dropna(inplace=True,axis=0,subset=selected_attrs,how="any") #on veut trier uniquement sur les attributs renseignés
-        if verbose: print(f"Removed {initial_count - len(df)} packets with undefined values.") # VERBOSE affichage du nombre de paquets supprimés car attribut non défini
-
+        if verbose: 
+            message=f"{Type}: Removed {initial_count - len(df)} packets with undefined values from {initial_count} initial packets.\n it is {(initial_count-len(df))*100/initial_count} % \n\n"
+            print(message) # VERBOSE affichage du nombre de paquets supprimés car attribut non défini
+            write_log_removed(message)
     #on marque les entrées aberrantes puis on les supprimera dans un 2nd temps
     #sinon on pourrait supprimer des valeurs qui n'étaient pas si aberrantes que ça
     df["outlier"]=False
@@ -50,7 +55,8 @@ def produce_dataset(df:pd.DataFrame,verbose:bool,undefined_toggle:bool,outlier_t
         df=df[~ df["outlier"]]
         
     if verbose: print(f"Remaining packets after processing: {len(df)}") # VERBOSE sauvegarde du dataset
-    df.to_json("./"+fichier_sortie, orient="index", indent=2) #il faudra readJson avec orient="index"
+    
+    df.to_json(fichier_sortie, orient="index", indent=2) #il faudra readJson avec orient="index"
     print("custom_dataset.json generated successfully.") # VERBOSE terminé !
     return df #au cas où
 
@@ -91,21 +97,55 @@ def calcul_Gte_Lt(year:int,month:int):
     DernierJour=datetime(year,month,1,0,0,0)
     return premierJour.isoformat(),DernierJour.isoformat()
 
+def retrieve_values(df:pd.DataFrame,column:str)->list:
+    """
+    Docstring for retrieve_values
+    Récupère les valeurs d'une colonne donnée
+
+    :param df: Le Dataframe concerné
+    :type df: pd.DataFrame
+    :param column: La colonne concernée
+    :type column: str
+    """
+    return [value for value in df[column]]
+
+def sub_df_by_column(df:pd.DataFrame,column:str)->dict:
+    """
+    Docstring for sub_df_by_column
+    Renvoie les sous DataFrame du DataFrame filtré par valeur d'une colonne
+
+    :param df: le Dataframe concerné
+    :type df: pd.DataFrame
+    :param column: Description
+    :type column: str
+    """
+    values=retrieve_values(df,column)
+    dfs={}
+    values=set(values) #cache
+    propre=df.dropna(subset=[column])
+    for value in values:
+        dfs[value]=df[df[column]==value]
+    return dfs
+
 def prepare_data(year:int,month:int,rolling_interval,attrList:list):
     """
     Crée des répertoires contenant les données rangées
     """
-    gte,lt=calcul_Gte_Lt(year,month)
-    file=download_data(gte,lt,year,month)
+    #gte,lt=calcul_Gte_Lt(year,month)
+    #file=download_data(gte,lt,year,month)
+    
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    os.makedirs(os.path.join(script_dir),"flattened",year,exist_ok=True)
-    flat_output_path=os.path.join(script_dir,"flattened",year,month+".json")
+    file=os.path.join(script_dir,"res_114781.json")
+    os.makedirs(os.path.join(script_dir,"flattened",str(year)),exist_ok=True)
+    flat_output_path=os.path.join(script_dir,"flattened",str(year),str(month)+".json")
     flatten_datas(file,flat_output_path)
     file=flat_output_path
     df=open_df_flattened(file)
-    os.makedirs(os.path.join(script_dir,"Data",year),exist_ok=True)
-    outputFile=os.path.join(script_dir,"Data",year,month+".json")
-    df=produce_dataset(df,True,True,True,rolling_interval,attrList,outputFile)
+    dfs=sub_df_by_column(df,"Type")
+    for Type,subDf in dfs.items():
+        os.makedirs(os.path.join(script_dir,"Data",str(year),str(month)),exist_ok=True)
+        outputFile=os.path.join(script_dir,"Data",str(year),str(month),Type+".json")
+        produce_dataset(subDf,True,True,True,rolling_interval,attrList,outputFile,Type)
 
 def open_df_flattened(fichier:str)->pd.DataFrame:
     """
