@@ -1,0 +1,70 @@
+services:
+  backend:
+    container_name: backend
+    build:
+      context: .
+      target: backend
+    image: backend:latest
+    expose:
+      - "8000"
+    restart: unless-stopped
+    user: python
+    volumes:
+      - python_images:/app/Images
+    depends_on:
+      - init-volumes
+  react:
+    container_name: react
+    build:
+      context: .
+      target: react
+    image: react:latest
+    expose:
+      - "3000"
+    restart: no
+    user: react
+    volumes:
+      - react_build:/output
+    command: sh -c "cp -r /app/build/* /output/"
+    
+  
+  server:
+    container_name: server
+    build: 
+      context: .
+      target: server
+    image: server:latest
+    expose:
+      - "80"
+      - "3000"
+    ports:
+      - 8000:8000
+      - 80:80
+    user: nginx
+    volumes:
+      - react_build:/app/build
+      - django_DI:/app/DatesIncorrectes
+      - django_DAT:/app/donnees_a_traiter
+      - django_doublons:/app/doublons
+      - django_export:/app/exports
+      - verification_data:/app/verification
+
+    depends_on:
+      - init-volumes
+      - react
+  init-volumes:
+    image: busybox #comme pour kubernetes, il faut donner les perms dans le volume avant
+    volumes:
+      - python_images:/app/Images
+    command: 
+      sh -c "
+        mkdir -p /app/Images &&
+        chmod -R 777 /app/Images &&
+        chmod -R 777 /app/build
+      "
+
+
+
+volumes:
+  react_build:
+  python_images:
