@@ -1,6 +1,25 @@
 récupérer les données du JSON res_114781.json pour l'IoT et les mettre dans le dossier (NE PAS LES PUSH)
 
 
+# Lancer le projet
+Je conseille d'installer [Docker](https://docs.docker.com/engine/install/) si ce n'est pas déjà fait
+
+Dans le répertoire du projet, faire tout simplement `docker-compose up -d`
+Cette commande lancera un nginx, un backend Python et un frontend React.
+
+Pour accéder à l'interface graphique, allez sur http://localhost .
+
+
+
+
+# Librairies utilisées
+- FastAPI (pour les requêtes http backend)
+- Pandas  (pour le traitement des données)
+- Matplotlib pour les plot
+- React Js pour l'interface graphique
+
+
+
 ### Contexte
 Titouan Verdier, Paul-Henri Lucotte, David Magoudaya, Charles Bouquet
 Dans le cadre du projet SIR Data Analysis for Internet of Things du département Télécommunications à l'INSA Lyon encadré par Fabrice Valois et Oana Iova. 
