@@ -1,15 +1,15 @@
-FROM python:3.13.5-alpine3.22 AS backend
+FROM python:3.14.2-alpine3.23 AS backend
 WORKDIR /app
 COPY ./backend /app
 EXPOSE 8000
-RUN pip install --no-cache-dir pandas python xlsxwriter matplotlib numpy Pillow fastapi[standard]
+RUN pip install --no-cache-dir pandas xlsxwriter matplotlib numpy Pillow fastapi[standard]
 
 RUN adduser -S python && addgroup -S python
 RUN chown -R python:python /app && chmod 755 -R /app
 USER python
-CMD ["gunicorn", "SiteComptabilite.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
+CMD ["fastapi", "dev", "server/main.py", "--port", "8000"]
 #modifier la ligne pour un serveur http basique
-FROM nginx:1.29.0-alpine AS server
+FROM nginx:1.29.4-alpine AS server
 
 WORKDIR /app/nginx
 COPY default.conf /etc/nginx/conf.d/default.conf
@@ -23,7 +23,7 @@ RUN chown -R nginx:nginx /app/nginx && \
 CMD ["nginx", "-g", "daemon off;"]
 
 
-FROM node:23-alpine3.20 AS react
+FROM node:25-alpine3.22 AS react
 WORKDIR /app
 COPY ./frontend /app
 

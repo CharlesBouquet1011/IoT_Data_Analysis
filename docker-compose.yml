@@ -34,6 +34,7 @@ services:
       context: .
       target: server
     image: server:latest
+    restart: unless-stopped
     expose:
       - "80"
       - "3000"
@@ -42,16 +43,13 @@ services:
       - 80:80
     user: nginx
     volumes:
+      - python_images:/app/Images
       - react_build:/app/build
-      - django_DI:/app/DatesIncorrectes
-      - django_DAT:/app/donnees_a_traiter
-      - django_doublons:/app/doublons
-      - django_export:/app/exports
-      - verification_data:/app/verification
 
     depends_on:
       - init-volumes
       - react
+      - backend
   init-volumes:
     image: busybox #comme pour kubernetes, il faut donner les perms dans le volume avant
     volumes:
@@ -68,3 +66,8 @@ services:
 volumes:
   react_build:
   python_images:
+    driver: local
+    driver_opts: 
+      type: none
+      device: ./backend/Images
+      o: bind
