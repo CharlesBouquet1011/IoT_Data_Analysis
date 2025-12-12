@@ -16,10 +16,10 @@ Fichier regroupant toutes les fonctions utiles au preprocessing des donnes
 
 By Charles Bouquet
 """
-from flatten_datas import flatten_datas
-from query_elk import download_data
+from .flatten_datas import flatten_datas
+#from .query_elk import download_data
 from datetime import datetime
-from txtUtils import write_log_removed
+from .txtUtils import write_log_removed
 import pandas as pd
 import os
 import matplotlib
@@ -123,7 +123,7 @@ def sub_df_by_column(df:pd.DataFrame,column:str)->dict:
     groupe=df.groupby(column)
     return {Cat:val for Cat, val in groupe}
 
-def prepare_data(year:int,month:int,rolling_interval,attrList:list):
+def prepare_data(year:int,month:int,rolling_interval,attrList:list,file):
     """
     Crée des répertoires contenant les données rangées
     """
@@ -131,7 +131,6 @@ def prepare_data(year:int,month:int,rolling_interval,attrList:list):
     #file=download_data(gte,lt,year,month)
     
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    file=os.path.join(script_dir,"res_114781.json")
     os.makedirs(os.path.join(script_dir,"flattened",str(year)),exist_ok=True)
     flat_output_path=os.path.join(script_dir,"flattened",str(year),str(month)+".json")
     flatten_datas(file,flat_output_path)

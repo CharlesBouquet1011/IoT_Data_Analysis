@@ -17,7 +17,7 @@ Docstring for preprocessing.automaticPreProcessing
 """
 
 
-from preprocessing_utils import prepare_data
+from .preprocessing_utils import prepare_data
 
 def main(rolling_interval=30,list_attr=["Airtime","BitRate","rssi","lsnr"]):
     months=[i for i in range(12,13)]
