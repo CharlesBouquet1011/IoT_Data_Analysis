@@ -21,6 +21,7 @@ export function UploadForm(){
     const [reload,setReload]=useState(0)
     const [succes,setSucces]=useState(false)
     const [erreur,setErreur]=useState("")
+    const [selection,setSelection]=useState(0)
     async function sendFile(file){
     try{
       console.log("envoi")
