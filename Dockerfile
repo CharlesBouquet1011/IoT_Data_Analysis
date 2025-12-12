@@ -1,10 +1,10 @@
-FROM python:3.14.2-alpine3.23 AS backend
+FROM python:3.14.2-slim AS backend
 WORKDIR /app
 COPY ./backend /app
 EXPOSE 8000
 RUN pip install --no-cache-dir pandas xlsxwriter matplotlib numpy Pillow fastapi[standard]
 
-RUN adduser -S python && addgroup -S python
+RUN adduser --system --group python
 RUN chown -R python:python /app && chmod 755 -R /app
 USER python
 CMD ["fastapi", "dev", "server/main.py", "--port", "8000"]
