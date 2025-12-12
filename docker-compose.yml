@@ -21,11 +21,16 @@ services:
     image: react:latest
     expose:
       - "3000"
-    restart: no
+
+    restart: unless-stopped
     user: react
     volumes:
-      - react_build:/output
-    command: sh -c "cp -r /app/build/* /output/"
+      #- react_build:/output
+      - ./frontend:/app
+      - /app/node_modules
+    #command: sh -c "cp -r /app/build/* /output/"
+    environment:
+      - WATCHPACK_POLLING=true
     
   
   server:

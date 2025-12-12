@@ -9,6 +9,11 @@ Cette commande lancera un nginx, un backend Python et un frontend React.
 
 Pour accéder à l'interface graphique, allez sur http://localhost .
 
+Si React ne fonctionne pas ou pour mettre à jour les librairies utilisées:
+`docker-compose exec react sh`
+`npm install`
+`exit`
+
 
 
 
