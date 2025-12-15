@@ -59,6 +59,8 @@ export function UploadForm(){
   
 
     return(<>
+    <div className="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-md space-y-8">
+
         <Dropzone
         onDrop={acceptedFiles => sendFile(acceptedFiles[0])}
         multiple={false}
@@ -80,7 +82,7 @@ export function UploadForm(){
       </Dropzone>
 
         {erreur && (
-        <p className="mt-4 text-red-600 font-medium">
+        <p className="text-red-600 font-semibold bg-red-50 border border-red-200 rounded-lg px-4 py-2">
             {erreur}
         </p>
         )}
@@ -91,7 +93,7 @@ export function UploadForm(){
     
   </>
 )}
-    
+    </div>
       </>
     )
 }
@@ -120,7 +122,9 @@ const attributs=["Airtime","BitRate","rssi","lsnr"] //rajouter des attributs ici
 
   async function preprocessData() {
     console.log("confirmation")
-    if (rollingInterval===0 || attrList.length===0 || !date || rollingIntervalType===""){
+    console.log("roll :",rollingInterval)
+    if (!rollingInterval || attrList.length===0 || !date || rollingIntervalType===""){
+      
       setErreur("Veuillez renseigner tous les champs")
       return ;
     }
@@ -156,17 +160,20 @@ const attributs=["Airtime","BitRate","rssi","lsnr"] //rajouter des attributs ici
     showMonthYearPicker
     dateFormat="MM/yyyy"
     placeholderText='Choisir un mois'
-      className="mt-4 w-48 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-700"
-
+className="w-full px-4 py-2 border border-gray-300 rounded-lg
+             bg-white text-gray-800
+             focus:outline-none focus:ring-2 focus:ring-blue-500"
   />
   <h4 className="text-lg font-semibold mt-8 mb-4 text-gray-800">
     Indiquez sur quelles caractéristiques vous voulez détecter les outliers 
   </h4>
+  <div className="grid grid-cols-2 gap-4 mt-2">
 
   {attributs.map((attr)=>(
     <label key={attr} className='text-gray-800'>
       <input type='checkbox'
       checked={attrList.includes(attr)}
+      className="h-4 w-4 text-blue-600 border-gray-400 rounded focus:ring-blue-500"
       onChange={()=>{
         setAttrList(prev => {
           if (prev.includes(attr)) {
@@ -180,29 +187,48 @@ const attributs=["Airtime","BitRate","rssi","lsnr"] //rajouter des attributs ici
       {attr}
     </label>
   ))}
-
+  </div>
   <h4 className="text-lg font-semibold mt-8 mb-4 text-gray-800">
     Indiquez sur quelle durée vous voulez que soit votre rollingInterval (en nombre de points ou en durée)
   </h4>
-  <button
-  onClick={()=>setRollingIntervalType("Duree")}
-  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
-  >
-    Durée
-  </button>
-  <button
-  onClick={()=>setRollingIntervalType("nb")}
-  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
-  >
-    Nombre de données
-  </button>
+  <div className="flex gap-4">
+    <button
+    onClick={()=>{setRollingIntervalType("Duree")
+      setRollingInterval("1d")
 
+    }}
+    className={`flex-1 py-2 rounded-lg font-semibold transition
+    ${rollingIntervalType === "Duree"
+      ? "bg-blue-600 text-white"
+      : "bg-gray-200 text-gray-800 hover:bg-gray-300"}
+  `}
+    >
+      Durée
+    </button>
+    <button
+    onClick={()=>{setRollingIntervalType("nb")
+
+      setRollingInterval(0)
+    }
+  }
+
+    className={`flex-1 py-2 rounded-lg font-semibold transition
+        ${rollingIntervalType === "nb"
+          ? "bg-blue-600 text-white"
+          : "bg-gray-200 text-gray-800 hover:bg-gray-300"}
+      `}
+    >
+      Nombre de données
+    </button>
+  </div>
   {rollingIntervalType &&(
     <>
     {rollingIntervalType==="nb" ? <>
-    <label for="nbPoints" className='text-gray-800'>Nombre de points</label>
     <input type='number' min="2" max="10" id="nbPoints" name="nbPoints"
     onChange={(e)=>setRollingInterval(e.target.value)}
+    className="w-full px-4 py-2 border border-gray-300 rounded-lg
+             bg-white text-gray-800
+             focus:outline-none focus:ring-2 focus:ring-blue-500"
     >
     
     </input>
@@ -212,7 +238,11 @@ const attributs=["Airtime","BitRate","rssi","lsnr"] //rajouter des attributs ici
       
     <>
     <select value={rollingInterval} id="choixDuree"
-    onChange={(e)=>{setRollingInterval(e.target.value)}}>Choisir une durée
+    onChange={(e)=>{setRollingInterval(e.target.value)}}
+    className="w-full px-4 py-2 border border-gray-300 rounded-lg
+             bg-white text-gray-800
+             focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >Choisir une durée
     {durations.map( d=>{
       //on peut faire du code supplémentaire ici en fait
       return(
@@ -229,13 +259,14 @@ const attributs=["Airtime","BitRate","rssi","lsnr"] //rajouter des attributs ici
 
 
     {erreur && (
-        <p className="mt-4 text-red-600 font-medium">
+        <p className="text-red-600 font-semibold bg-red-50 border border-red-200 rounded-lg px-4 py-2">
             {erreur}
         </p>
         )}
     <button
     onClick={()=>preprocessData()}
-    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition">
+    className="w-full bg-blue-600 hover:bg-blue-700 text-white
+             font-semibold py-3 rounded-lg transition">
       Confirmer</button>
 
     {succes &&(
@@ -272,7 +303,7 @@ export function SelectProcess(){
                 onClick={() => setSelection(1)}
                 className="form-radio text-indigo-600"
               />
-              <span className="text-gray-700">
+              <span className="text-gray-800 font-medium">
                 TEXTE DESC SELECTION
               </span>
             </label>
@@ -287,7 +318,7 @@ export function SelectProcess(){
                   onClick={() => setSelection(2)}
                   className="form-radio text-indigo-600"
                 />
-                <span className="text-gray-700">
+                <span className="text-gray-800 font-medium">
                   TEXTE AIDE SELECTION
                 </span>
               </span>
