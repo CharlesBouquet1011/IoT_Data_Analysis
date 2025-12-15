@@ -15,7 +15,7 @@
 
 import { useEffect,useState,useCallback } from 'react'
 import Dropzone from 'react-dropzone'
-
+import DatePicker from "react-datepicker"
 
 export function UploadForm(){
 
@@ -98,11 +98,11 @@ export function UploadForm(){
 
 
 export function DateUploadForm(){
-  const [date,setDate]=useState(new Date())
+  const [date,setDate]=useState(null)
     
 
   const [rollingInterval,setRollingInterval]=useState(0)
-  const [rollingIntervalType,setRollingIntervalType]=useSta("")
+  const [rollingIntervalType,setRollingIntervalType]=useState("")
   const [attrList,setAttrList]=useState([])
   const [erreur,setErreur]=useState("")
   const [succes,setSucces]=useState(false)
@@ -116,14 +116,15 @@ export function DateUploadForm(){
   { label: "6 mois", value: "6m" },
   { label: "1 an", value: "1y" },
 ];
+const attributs=["Airtime","BitRate","rssi","lsnr"] //rajouter des attributs ici si on veut
 
   async function preprocessData() {
     console.log("confirmation")
-    if (rollingInterval===0 || attrList==[] ||date ===new Date() || rollingIntervalType===""){
+    if (rollingInterval===0 || attrList.length===0 || !date || rollingIntervalType===""){
       setErreur("Veuillez renseigner tous les champs")
       return ;
     }
-    const response=await fetch("http//localhost:8000/api/preprocessing",{
+    const response=await fetch("http://localhost:8000/api/preprocessing",{
       method:"POST",
       credentials:"include",
       body:JSON.stringify({
@@ -161,20 +162,24 @@ export function DateUploadForm(){
   <h4 className="text-lg font-semibold mt-8 mb-4 text-gray-800">
     Indiquez sur quelles caractéristiques vous voulez détecter les outliers 
   </h4>
-  <select name="cars" id="cars" multiple
-  value={attrList}
-  onChange={(e)=>{
-    setAttrList(
-      Array.from(e.target.selectedOptions,option=>option.value)
-    )
-  }}
-  >
-    {/*pas hésitez à rajouter des options, je suis juste pas très inspiré aujourd'hui */}
-    <option value="Airtime">Airtime</option>
-    <option value="BitRate">BitRate</option>
-    <option value="rssi">rssi</option>
-    <option value="lsnr">lsnr</option>
-  </select>
+
+  {attributs.map((attr)=>(
+    <label key={attr} className='text-gray-800'>
+      <input type='checkbox'
+      checked={attrList.includes(attr)}
+      onChange={()=>{
+        setAttrList(prev => {
+          if (prev.includes(attr)) {
+            return prev.filter(v => v !== attr);
+          }
+          return [...prev, attr];
+        });
+      
+            }}
+      />
+      {attr}
+    </label>
+  ))}
 
   <h4 className="text-lg font-semibold mt-8 mb-4 text-gray-800">
     Indiquez sur quelle durée vous voulez que soit votre rollingInterval (en nombre de points ou en durée)
@@ -187,27 +192,34 @@ export function DateUploadForm(){
   </button>
   <button
   onClick={()=>setRollingIntervalType("nb")}
+  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
   >
     Nombre de données
   </button>
 
   {rollingIntervalType &&(
     <>
-    {rollingInterval==="nb" ? <>
-    <input type='number' min="2" max="10"
+    {rollingIntervalType==="nb" ? <>
+    <label for="nbPoints" className='text-gray-800'>Nombre de points</label>
+    <input type='number' min="2" max="10" id="nbPoints" name="nbPoints"
     onChange={(e)=>setRollingInterval(e.target.value)}
     >
-    Nombre de points
+    
     </input>
     
     </> 
       : 
       
     <>
-    <select value={rollingInterval}
+    <select value={rollingInterval} id="choixDuree"
     onChange={(e)=>{setRollingInterval(e.target.value)}}>Choisir une durée
     {durations.map( d=>{
-      <option key={d.value} value={d.value}>{d.label}</option>
+      //on peut faire du code supplémentaire ici en fait
+      return(
+      <option key={d.value} value={d.value}
+      className='text-gray-800'
+      >{d.label}</option>
+      )
     })}
     </select>
     </>}
