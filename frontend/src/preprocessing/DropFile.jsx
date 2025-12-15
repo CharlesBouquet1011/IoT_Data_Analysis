@@ -18,13 +18,15 @@ import Dropzone from 'react-dropzone'
 
 
 export function UploadForm(){
+
     const [reload,setReload]=useState(0)
     const [succes,setSucces]=useState(false)
     const [erreur,setErreur]=useState("")
     const [selection,setSelection]=useState(0)
+
     async function sendFile(file){
     try{
-      console.log("envoi")
+      console.log("envoi fichier")
       const formdata=new FormData()
       formdata.append("file",file)
       const response = await fetch("http://localhost:8000/api/upload/", { //comme avant
@@ -54,6 +56,7 @@ export function UploadForm(){
     
 
   }
+  
 
     return(<>
         <Dropzone
@@ -83,6 +86,165 @@ export function UploadForm(){
         )}
         {succes && (
   <>
+    <DateUploadForm />
+          
+    
+  </>
+)}
+    
+      </>
+    )
+}
+
+
+export function DateUploadForm(){
+  const [date,setDate]=useState(new Date())
+    
+
+  const [rollingInterval,setRollingInterval]=useState(0)
+  const [rollingIntervalType,setRollingIntervalType]=useSta("")
+  const [attrList,setAttrList]=useState([])
+  const [erreur,setErreur]=useState("")
+  const [succes,setSucces]=useState(false)
+
+
+  const durations = [
+  { label: "1 jour", value: "1d" },
+  { label: "7 jours", value: "7d" },
+  { label: "1 mois", value: "1m" },
+  { label: "3 mois", value: "3m" },
+  { label: "6 mois", value: "6m" },
+  { label: "1 an", value: "1y" },
+];
+
+  async function preprocessData() {
+    console.log("confirmation")
+    if (rollingInterval===0 || attrList==[] ||date ===new Date() || rollingIntervalType===""){
+      setErreur("Veuillez renseigner tous les champs")
+      return ;
+    }
+    const response=await fetch("http//localhost:8000/api/preprocessing",{
+      method:"POST",
+      credentials:"include",
+      body:JSON.stringify({
+        year:date.getFullYear(),
+        month:date.getMonth()+1,
+        rollingIntervalType: rollingIntervalType,
+        rollingInterval: rollingInterval,
+        attrList: attrList
+      })
+    })
+    if (!response.ok){
+      setErreur(response.error)
+      setSucces(false)
+    }
+    else{
+      setErreur("")
+      setSucces(true)
+    }
+  }
+
+  return(
+
+<>
+  <h4 className="text-lg font-semibold mt-8 mb-4 text-gray-800">
+    Indiquez à quel mois correspond votre donnée
+  </h4>
+  <DatePicker selected={date}
+    onChange={(date)=>setDate(date)}
+    showMonthYearPicker
+    dateFormat="MM/yyyy"
+    placeholderText='Choisir un mois'
+      className="mt-4 w-48 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-700"
+
+  />
+  <h4 className="text-lg font-semibold mt-8 mb-4 text-gray-800">
+    Indiquez sur quelles caractéristiques vous voulez détecter les outliers 
+  </h4>
+  <select name="cars" id="cars" multiple
+  value={attrList}
+  onChange={(e)=>{
+    setAttrList(
+      Array.from(e.target.selectedOptions,option=>option.value)
+    )
+  }}
+  >
+    {/*pas hésitez à rajouter des options, je suis juste pas très inspiré aujourd'hui */}
+    <option value="Airtime">Airtime</option>
+    <option value="BitRate">BitRate</option>
+    <option value="rssi">rssi</option>
+    <option value="lsnr">lsnr</option>
+  </select>
+
+  <h4 className="text-lg font-semibold mt-8 mb-4 text-gray-800">
+    Indiquez sur quelle durée vous voulez que soit votre rollingInterval (en nombre de points ou en durée)
+  </h4>
+  <button
+  onClick={()=>setRollingIntervalType("Duree")}
+  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition"
+  >
+    Durée
+  </button>
+  <button
+  onClick={()=>setRollingIntervalType("nb")}
+  >
+    Nombre de données
+  </button>
+
+  {rollingIntervalType &&(
+    <>
+    {rollingInterval==="nb" ? <>
+    <input type='number' min="2" max="10"
+    onChange={(e)=>setRollingInterval(e.target.value)}
+    >
+    Nombre de points
+    </input>
+    
+    </> 
+      : 
+      
+    <>
+    <select value={rollingInterval}
+    onChange={(e)=>{setRollingInterval(e.target.value)}}>Choisir une durée
+    {durations.map( d=>{
+      <option key={d.value} value={d.value}>{d.label}</option>
+    })}
+    </select>
+    </>}
+    
+    </>
+  )}
+
+
+    {erreur && (
+        <p className="mt-4 text-red-600 font-medium">
+            {erreur}
+        </p>
+        )}
+    <button
+    onClick={()=>preprocessData()}
+    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition">
+      Confirmer</button>
+
+    {succes &&(
+      <> 
+      <SelectProcess />
+      
+      </>
+    )}
+          
+</>
+
+
+  )
+}
+
+export function SelectProcess(){
+
+
+  return(
+
+    <>
     <h4 className="text-lg font-semibold mt-8 mb-4 text-gray-800">
       Choisissez ce que vous voulez faire du fichier
     </h4>
@@ -125,13 +287,12 @@ export function UploadForm(){
         </tr>
       </tbody>
     </table>
-  </>
-)}
+    
     {/* exemples d'utilisation, il faudra choisir les nombres que vous voulez pour mettre les fonctions que vous voulez
     et rajouter des cases dans le tableau pour laisser le choix à l'utilisateur
     */}
     {/*succes && selection===1 ? <PreTraitement reload={reload} />: <></> */}
     {/*succes && selection===2 ? <Verification reload={reload} /> : <></>*/}
-      </>
-    )
+    </>
+  )
 }
