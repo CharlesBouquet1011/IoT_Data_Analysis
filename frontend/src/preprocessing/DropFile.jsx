@@ -131,6 +131,9 @@ const attributs=["Airtime","BitRate","rssi","lsnr"] //rajouter des attributs ici
     const response=await fetch("http://localhost:8000/api/preprocessing",{
       method:"POST",
       credentials:"include",
+      headers: {
+        "Content-Type": "application/json"
+      },
       body:JSON.stringify({
         year:date.getFullYear(),
         month:date.getMonth()+1,

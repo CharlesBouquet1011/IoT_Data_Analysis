@@ -157,6 +157,8 @@ def open_df_flattened(fichier:str)->pd.DataFrame:
     df.set_index("@timestamp",inplace=True) #Pandas autorise d'avoir des index non uniques donc ça ne posera pas problème quoi qu'il arrive
     return df
 
+def parseRawPkt(raw):
+    pass
 if __name__=="__main__":
     #tests
     df=open_df_flattened("preprocessing/flattened_datas.json")

@@ -16,7 +16,8 @@
 By Charles Bouquet
 Docstring for preprocessing.useData
 Sert à importer les données enregistrées en json dans le système de fichiers
-
+erreurs soulevées: ValueError pour toutes les fonctions sauf Ouvre_Json_Mois_Categorie: FileNotFoundError 
+Pour chaque fonction, on suppose que le fichier cherché existe, ça revient à l'utilisateur des fonctions de faire un try except au cas où
 Fonctions:
 open_processed_df:
     ouvre juste un df en fonction de comment il a été enregistré
@@ -46,6 +47,7 @@ def Ouvre_Json_Util(path)->pd.DataFrame:
     list_df=[]
     for root,dirs,files in os.walk(path):
         for file in files:
+            file=os.path.join(root,file)
             tempDf=open_processed_df(file)
             if tempDf.empty or tempDf.isna().all(axis=None):
                 continue #on ne veut pas ajouter notre DataFrame s'il n'y a rien dedans
@@ -62,7 +64,7 @@ def Ouvre_Json_Annee(annee:int)->pd.DataFrame:
     :type annee: int
     """
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    path=os.join(script_dir,"Data",str(annee))
+    path=os.path.join(script_dir,"Data",str(annee))
     return Ouvre_Json_Util(path)
     
 
@@ -77,12 +79,12 @@ def Ouvre_Json_Mois(annee:int,mois:int)->pd.DataFrame:
     :type mois: int
     """
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    path=os.join(script_dir,"Data",str(annee),str(mois))
+    path=os.path.join(script_dir,"Data",str(annee),str(mois))
     return Ouvre_Json_Util(path)
 
 def Ouvre_Json_Mois_Categorie(annee:int,mois:int,Categorie:str)->pd.DataFrame:
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    file=os.join(script_dir,"Data",str(annee),str(mois),Categorie+".json")
+    file=os.path.join(script_dir,"Data",str(annee),str(mois),Categorie+".json")
     df=open_processed_df(file)
     return df
 
@@ -91,6 +93,7 @@ def Ouvre_Json_Cat_Util(path:str,cat:str)->pd.DataFrame: #à tester
     for root,dirs,files in os.walk(path):
         for file in files:
             if cat in file:#on veut que le nom du fichier contienne le nom de la catégorie
+                file=os.path.join(root,file)
                 tempDf=open_processed_df(file)
                 if tempDf.empty or tempDf.isna().all(axis=None):
                     continue #on ne veut pas ajouter notre DataFrame s'il n'y a rien dedans
@@ -100,12 +103,15 @@ def Ouvre_Json_Cat_Util(path:str,cat:str)->pd.DataFrame: #à tester
 
 def Ouvre_Json_Categorie(Categorie:str)->pd.DataFrame:
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    path=os.join(script_dir,"Data")
+    path=os.path.join(script_dir,"Data")
     return Ouvre_Json_Cat_Util(path,Categorie)
 
 def Ouvre_Json_Categorie_Annee(annee:int,Categorie:str)->pd.DataFrame:
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    path=os.join(script_dir,"Data",str(annee))
+    path=os.path.join(script_dir,"Data",str(annee))
     return Ouvre_Json_Cat_Util(path,Categorie)
 
 
+if __name__=="__main__":
+    df=Ouvre_Json_Mois_Categorie(2025,1,"sd")
+    print(df)

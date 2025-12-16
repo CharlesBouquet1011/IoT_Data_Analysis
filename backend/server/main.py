@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from fastapi import FastAPI,UploadFile,File
+from fastapi import FastAPI,UploadFile,File,HTTPException
 import os
+from server.models.preprocessing import PreprocessRequest
 from preprocessing import prepare_data
 #Initialisation
 app = FastAPI()
@@ -41,7 +42,34 @@ async def uploadFile(file:UploadFile = File(...)): #syntaxe pour récupérer un 
             f.write(partie)
 
 @app.post("/api/preprocessing")
-async def preprocessing(year:int,month:int,rolling_interval,attrList:list):
+async def preprocessing(data:PreprocessRequest):
+    if data.month < 1 or data.month > 12:
+        raise HTTPException(
+            status_code=400,
+            detail="Mois invalide"
+        )
+
+    if not data.attrList:
+        raise HTTPException(
+            status_code=400,
+            detail="Aucune caractéristique sélectionnée"
+        )
+
+    if data.rollingIntervalType == "nb":
+        if not isinstance(data.rollingInterval, int) or data.rollingInterval < 2:
+            raise HTTPException(
+                status_code=400,
+                detail="rollingInterval invalide pour le mode nb"
+            )
+
+    if data.rollingIntervalType == "Duree":
+        if not isinstance(data.rollingInterval, str):
+            raise HTTPException(
+                status_code=400,
+                detail="rollingInterval invalide pour le mode durée"
+            )
+    
     file=os.path.join(raw_data_dir,"raw.json")
-    prepare_data(year,month,rolling_interval,attrList,file)
+    prepare_data(data.year,data.month,data.rollingInterval,data.attrList,file)
+    return {"status":"ok","message":"Prétraitement terminé"}
         
