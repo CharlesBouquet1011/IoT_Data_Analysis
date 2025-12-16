@@ -20,6 +20,7 @@ from .flatten_datas import flatten_datas
 #from .query_elk import download_data
 from datetime import datetime
 from .txtUtils import write_log_removed
+from .RawParsing import addColAdr
 import pandas as pd
 import os
 import matplotlib
@@ -66,7 +67,7 @@ def produce_dataset(df:pd.DataFrame,verbose:bool,undefined_toggle:bool,outlier_t
         df=df[~ df["outlier"]]
         
     if verbose: print(f"Remaining packets after processing: {len(df)}") # VERBOSE sauvegarde du dataset
-    
+    df=addColAdr(df)
     df.to_json(fichier_sortie, orient="index", indent=2) #il faudra readJson avec orient="index"
     print("custom_dataset.json generated successfully.") # VERBOSE terminé !
     return df #au cas où
@@ -157,12 +158,12 @@ def open_df_flattened(fichier:str)->pd.DataFrame:
     df.set_index("@timestamp",inplace=True) #Pandas autorise d'avoir des index non uniques donc ça ne posera pas problème quoi qu'il arrive
     return df
 
-def parseRawPkt(raw):
-    pass
+
 if __name__=="__main__":
     #tests
-    df=open_df_flattened("preprocessing/flattened_datas.json")
-    print(df)
-    df=produce_dataset(df,True,True,True,30,["BitRate","rssi","lsnr"],"preprocessing/nettoye.json")
-    print(df)
-    plot_timeSeries(df,["Airtime","BitRate","rssi","lsnr"],pd.to_datetime("2023-10-12T19:42:00.723Z"))
+    #lancer le script EN TANT QUE MODULE, sinon ça ne fonctionnera pas
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    file=os.path.join(script_dir,"Raw","raw.json")
+    prepare_data(2025,12,30,["BitRate","rssi","lsnr"],file)
+
+    

@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""
+Docstring for backend.server.main
 
+Server HTTP FastAPI pour l'application 
+"""
 from fastapi import FastAPI,UploadFile,File,HTTPException
 import os
 from server.models.preprocessing import PreprocessRequest

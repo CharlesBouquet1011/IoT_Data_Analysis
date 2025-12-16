@@ -36,14 +36,31 @@ Ouvre_Json_Categorie:
 Ouvre_Json_Categorie_Annee:
     Renvoie un Dataframe à partir de tous les JSON de l'année et de la Catégorie correspondante (quel que soit le mois)
 """
-
 import pandas as pd
 import os
-def open_processed_df(file:str):
+
+def open_processed_df(file:str)->pd.DataFrame:
+    """
+    Docstring for open_processed_df
+    Ouvre le fichier spécifié en tant que dataframe
+
+    :param file: chemin du fichier
+    :type file: str
+    :return: Dataframe correspondant au json choisi
+    :rtype: DataFrame
+    """
     df= pd.read_json(file,orient="index")
     return df
 
 def Ouvre_Json_Util(path)->pd.DataFrame:
+    """
+    Docstring for Ouvre_Json_Util
+    Ouvre des JSON globalement, utilisé dans les autres fonctions uniquement
+
+    :param path: Description
+    :return: Description
+    :rtype: DataFrame
+    """
     list_df=[]
     for root,dirs,files in os.walk(path):
         for file in files:
@@ -73,9 +90,9 @@ def Ouvre_Json_Mois(annee:int,mois:int)->pd.DataFrame:
     """
     Docstring for Ouvre_Json_Mois
     Ouvre toutes les catégories du mois sélectionné
-    :param annee: Description
+    :param annee: année du mois choisi
     :type annee: int
-    :param mois: Description
+    :param mois: mois choisi (de 1 à 12)
     :type mois: int
     """
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -83,12 +100,36 @@ def Ouvre_Json_Mois(annee:int,mois:int)->pd.DataFrame:
     return Ouvre_Json_Util(path)
 
 def Ouvre_Json_Mois_Categorie(annee:int,mois:int,Categorie:str)->pd.DataFrame:
+    """
+    Docstring for Ouvre_Json_Mois_Categorie
+    Importe dans un Dataframe les données correspondants à l'année, au mois et à la catégorie sélectionnés
+
+    :param annee: année choisie
+    :type annee: int
+    :param mois: mois choisi (de 1 à 12)
+    :type mois: int
+    :param Categorie: Catégorie de data (par exemple Confirmed Data Up)
+    :type Categorie: str
+    :return: le dataframe correspondant aux données sélectionées
+    :rtype: DataFrame
+    """
     script_dir = os.path.dirname(os.path.abspath(__file__))
     file=os.path.join(script_dir,"Data",str(annee),str(mois),Categorie+".json")
     df=open_processed_df(file)
     return df
 
-def Ouvre_Json_Cat_Util(path:str,cat:str)->pd.DataFrame: #à tester
+def Ouvre_Json_Cat_Util(path:str,cat:str)->pd.DataFrame: 
+    """
+    Docstring for Ouvre_Json_Cat_Util
+    Fonction globalement utilisée pour ouvrir des json en fonction d'une catégorie
+
+    :param path: chemin du répertoire où on cherche
+    :type path: str
+    :param cat: Catégorie choisie
+    :type cat: str
+    :return: DataFrame des données trouvées
+    :rtype: DataFrame
+    """
     list_df=[]
     for root,dirs,files in os.walk(path):
         for file in files:
@@ -102,11 +143,31 @@ def Ouvre_Json_Cat_Util(path:str,cat:str)->pd.DataFrame: #à tester
     return df
 
 def Ouvre_Json_Categorie(Categorie:str)->pd.DataFrame:
+    """
+    Docstring for Ouvre_Json_Categorie
+    Importe dans un Dataframe tous les JSON de la catégorie choisie
+
+    :param Categorie: Catégorie choisie (par exemple Confirmed Data Up)
+    :type Categorie: str
+    :return: données correspondantes à la catégorie choisie
+    :rtype: DataFrame
+    """
     script_dir = os.path.dirname(os.path.abspath(__file__))
     path=os.path.join(script_dir,"Data")
     return Ouvre_Json_Cat_Util(path,Categorie)
 
 def Ouvre_Json_Categorie_Annee(annee:int,Categorie:str)->pd.DataFrame:
+    """
+    Docstring for Ouvre_Json_Categorie_Annee
+    Importe en DataFrame tous les json de la catégorie et de l'année choisis
+
+    :param annee: année choisie
+    :type annee: int
+    :param Categorie: catégorie choisie (exemple Confirmed Data Up)
+    :type Categorie: str
+    :return: Données correspondantes
+    :rtype: DataFrame
+    """
     script_dir = os.path.dirname(os.path.abspath(__file__))
     path=os.path.join(script_dir,"Data",str(annee))
     return Ouvre_Json_Cat_Util(path,Categorie)
