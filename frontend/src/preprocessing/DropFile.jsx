@@ -13,16 +13,16 @@
 // limitations under the License.
 
 
-import { useEffect,useState,useCallback } from 'react'
+import { useState } from 'react'
 import Dropzone from 'react-dropzone'
 import DatePicker from "react-datepicker"
+import Clustering from '../data_processing/Clustering.jsx'
 
 export function UploadForm(){
 
     const [reload,setReload]=useState(0)
     const [succes,setSucces]=useState(false)
     const [erreur,setErreur]=useState("")
-    const [selection,setSelection]=useState(0)
 
     async function sendFile(file){
     try{
@@ -108,6 +108,14 @@ export function DateUploadForm(){
   const [attrList,setAttrList]=useState([])
   const [erreur,setErreur]=useState("")
   const [succes,setSucces]=useState(false)
+  const [technique,setTechnique]=useState(null)
+
+  // Techniques d'analyse disponibles, la technique choisie est stockée dans "technique" (0=regression, 1=saisonnalité, 2=clustering)
+  const techniques = [
+    { value: 0, label: "Régression / Prédiction", description: "ajouter une description" },
+    { value: 1, label: "Analyse de saisonnalité", description: "ajouter une description" },
+    { value: 2, label: "Clustering", description: "ajouter une description" },
+  ]
 
 
   const durations = [
@@ -123,7 +131,7 @@ const attributs=["Airtime","BitRate","rssi","lsnr"] //rajouter des attributs ici
   async function preprocessData() {
     console.log("confirmation")
     console.log("roll :",rollingInterval)
-    if (!rollingInterval || attrList.length===0 || !date || rollingIntervalType===""){
+    if (!rollingInterval || attrList.length===0 || !date || rollingIntervalType==="" || technique===null){
       
       setErreur("Veuillez renseigner tous les champs")
       return ;
@@ -138,15 +146,21 @@ const attributs=["Airtime","BitRate","rssi","lsnr"] //rajouter des attributs ici
         year:date.getFullYear(),
         month:date.getMonth()+1,
         rollingIntervalType: rollingIntervalType,
-        rollingInterval: rollingInterval,
-        attrList: attrList
+        rollingInterval: rollingIntervalType === "nb" ? parseInt(rollingInterval, 10) : rollingInterval,
+        attrList: attrList,
+        technique: technique
       })
     })
+    console.log("Response status:", response.status)
+    console.log("Response ok:", response.ok)
     if (!response.ok){
-      setErreur(response.error)
+      const errData = await response.json().catch(() => ({}))
+      console.log("Erreur response:", errData)
+      setErreur(errData.error || `Erreur ${response.status}`)
       setSucces(false)
     }
     else{
+      console.log("Prétraitement réussi, technique:", technique)
       setErreur("")
       setSucces(true)
     }
@@ -261,6 +275,34 @@ className="w-full px-4 py-2 border border-gray-300 rounded-lg
   )}
 
 
+    <h4 className="text-lg font-semibold mt-8 mb-4 text-gray-800">
+      Choisissez la technique d'analyse à appliquer
+    </h4>
+    <div className="grid gap-3">
+      {techniques.map((tech) => (
+        <label
+          key={tech.value}
+          className={`flex items-start p-4 border rounded-lg cursor-pointer transition
+            ${technique === tech.value
+              ? "border-blue-600 bg-blue-50"
+              : "border-gray-300 hover:border-blue-400"}`}
+        >
+          <input
+            type="radio"
+            name="technique"
+            value={tech.value}
+            checked={technique === tech.value}
+            onChange={() => setTechnique(tech.value)}
+            className="mt-1 h-4 w-4 text-blue-600 border-gray-400 focus:ring-blue-500"
+          />
+          <div className="ml-3">
+            <span className="text-gray-800 font-medium">{tech.label}</span>
+            <p className="text-sm text-gray-500">{tech.description}</p>
+          </div>
+        </label>
+      ))}
+    </div>
+
     {erreur && (
         <p className="text-red-600 font-semibold bg-red-50 border border-red-200 rounded-lg px-4 py-2">
             {erreur}
@@ -272,21 +314,31 @@ className="w-full px-4 py-2 border border-gray-300 rounded-lg
              font-semibold py-3 rounded-lg transition">
       Confirmer</button>
 
-    {succes &&(
-      <> 
-      <SelectProcess />
-      
-      </>
+    {succes && technique === 0 && (
+      <div className="mt-6 p-4 bg-gray-100 rounded-lg">
+        <p className="text-gray-600 text-center">pas encore fait</p>
+      </div>
+    )}
+
+    {succes && technique === 1 && (
+      <div className="mt-6 p-4 bg-gray-100 rounded-lg">
+        <p className="text-gray-600 text-center">pas encore fait</p>
+      </div>
+    )}
+
+    {succes && technique === 2 && (
+      <Clustering />
     )}
           
 </>
 
-
+// Si clic sur "Confirmer", on appelle le composant correspondant
   )
 }
 
+// Fonction pour choisir le processus à appliquer après l'upload
 export function SelectProcess(){
-
+  const [selection, setSelection] = useState(0)
 
   return(
 
