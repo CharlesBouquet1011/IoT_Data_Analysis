@@ -27,6 +27,7 @@ export function UploadForm(){
     async function sendFile(file){
     try{
       console.log("envoi fichier")
+      setSucces(false) //pour pas qu'on puisse utiliser les composants suivants lorsqu'un fichier est en train d'être réupload (évitera probablement des bugs)
       const formdata=new FormData()
       formdata.append("file",file)
       const response = await fetch("http://localhost:8000/api/upload/", { //comme avant
