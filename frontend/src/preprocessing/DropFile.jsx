@@ -21,6 +21,7 @@ export function UploadForm(){
 
     const [reload,setReload]=useState(0)
     const [succes,setSucces]=useState(false)
+    const [processed,setProcessed]=useState(false)
     const [erreur,setErreur]=useState("")
 
     async function sendFile(file){
@@ -38,7 +39,7 @@ export function UploadForm(){
     if (response.ok){
       console.log("Fichier envoyé avec succès")
       setSucces(true)
-      setReload(1^reload)
+      setReload(r => r ^ 1)
       setErreur("")
     }
     else{
@@ -64,7 +65,7 @@ export function UploadForm(){
         <Dropzone
         onDrop={acceptedFiles => sendFile(acceptedFiles[0])}
         multiple={false}
-        accept={{ 'text/json': ['.json'] }}
+        accept={{ 'application/json': ['.json'] }}
       >
         {({ getRootProps, getInputProps }) => (
           <section>
@@ -86,20 +87,22 @@ export function UploadForm(){
             {erreur}
         </p>
         )}
-        {succes && (
+        {succes && !processed && (
   <>
-    <DateUploadForm />
-          
-    
+    <DateUploadForm setSucces={setSucces} setProcessed={setProcessed} />
   </>
 )}
+
+        {processed && (
+          <SelectProcess />
+        )}
     </div>
       </>
     )
 }
 
 
-export function DateUploadForm(){
+export function DateUploadForm({ setSucces, setProcessed }){
   const [date,setDate]=useState(null)
     
 
@@ -145,12 +148,13 @@ const attributs=["Airtime","BitRate","rssi","lsnr"] //rajouter des attributs ici
       const errData = await response.json().catch(() => ({}))
       console.log("Erreur response:", errData)
       setErreur(errData.error || `Erreur ${response.status}`)
-      setSucces(false)
+      if (typeof setSucces === 'function') setSucces(false)
     }
     else{
       console.log("Prétraitement réussi")
       setErreur("")
-      setSucces(true)
+      if (typeof setSucces === 'function') setSucces(true)
+      if (typeof setProcessed === 'function') setProcessed(true)
     }
   }
 
@@ -211,11 +215,7 @@ className="w-full px-4 py-2 border border-gray-300 rounded-lg
       Durée
     </button>
     <button
-    onClick={()=>{setRollingIntervalType("nb")
-
-      setRollingInterval(0)
-    }
-  }
+    onClick={() => { setRollingIntervalType("nb"); setRollingInterval(0); }}
 
     className={`flex-1 py-2 rounded-lg font-semibold transition
         ${rollingIntervalType === "nb"
