@@ -132,19 +132,101 @@ def plot_clustering(year: int,
 
 	fig, ax = plt.subplots(figsize=(8, 5))
 
+	# Tracé adaptatif pour une seule métrique (1D)
 	if n_metrics == 1:
-		y = np.zeros(len(vals_x))
-		jitter = (np.random.rand(len(vals_x)) - 0.5) * 0.02 * (max(vals_x) - min(vals_x) if len(vals_x) > 1 else 1)
-		ax.scatter(vals_x, y + jitter, s=6, alpha=0.6)
+		# Agréger les points identiques (même valeur de métrique)
+		unique_vals, counts = np.unique(vals_x, return_counts=True)
+		y = np.zeros(len(unique_vals))
+		val_min, val_max = float(np.min(unique_vals)), float(np.max(unique_vals))
+		range_val = val_max - val_min if val_max != val_min else 1.0
+		pad = 0.02 * range_val
+		ax.set_xlim(val_min - pad, val_max + pad)
+		xgrads = ax.get_xticks()
+		if len(xgrads) > 1:
+			diffs = np.diff(np.sort(xgrads))
+			pos = diffs[diffs > 0]
+			spacing = float(np.min(pos)) if pos.size > 0 else range_val
+		else:
+			spacing = range_val
+
+		x0_disp = ax.transData.transform((val_min, 0))[0]
+		x1_disp = ax.transData.transform((val_min + spacing, 0))[0]
+		pixel_diff = abs(x1_disp - x0_disp)
+		# Eviter division par zéro
+		if fig.dpi and pixel_diff > 0:
+			max_diameter_points = pixel_diff * 72.0 / fig.dpi
+		else:
+			max_diameter_points = 10.0
+
+		max_diameter_points *= 0.9
+		max_area = max_diameter_points ** 2
+
+		raw = counts.astype(float)
+		if raw.max() > 0:
+			sizes = (raw / raw.max()) * max_area
+		else:
+			sizes = np.full_like(raw, fill_value=(max_area * 0.2))
+
+		min_diameter_points = 2.0
+		min_area = min_diameter_points ** 2
+		sizes = np.clip(sizes, min_area, max_area)
+
+		ax.scatter(unique_vals, y, s=sizes, alpha=0.6)
 		ax.set_xlabel(metrics[0])
 		ax.set_yticks([])
 		ax.set_title(f"Distribution de '{metrics[0]}' - {data_type} {month_str}/{year}")
 		ax.grid(axis='x', linestyle='--', alpha=0.4)
+
+	# Tracé adaptatif pour une deux métriques (2D)
 	else:
-		ax.scatter(vals_x, vals_y, s=8, alpha=0.6)
+		# Agréger les points identiques (même valeur sur les deux métriques)
+		pts = np.column_stack((vals_x, vals_y))
+		unique_pts, counts = np.unique(pts, axis=0, return_counts=True)
+		ux = unique_pts[:, 0]
+		yu = unique_pts[:, 1]
+
 		ax.set_xlabel(metrics[0])
 		ax.set_ylabel(metrics[1])
 		ax.set_title(f"{metrics[0]} vs {metrics[1]} - {data_type} {month_str}/{year}")
+
+		x_min, x_max = float(np.min(ux)), float(np.max(ux))
+		y_min, y_max = float(np.min(yu)), float(np.max(yu))
+		rx_range = x_max - x_min if x_max != x_min else 1.0
+		ry_range = y_max - y_min if y_max != y_min else 1.0
+		x_pad = 0.02 * rx_range
+		y_pad = 0.02 * ry_range
+		ax.set_xlim(x_min - x_pad, x_max + x_pad)
+		ax.set_ylim(y_min - y_pad, y_max + y_pad)
+
+		xgrads = ax.get_xticks()
+		if len(xgrads) > 1:
+			diffs = np.diff(np.sort(xgrads))
+			pos = diffs[diffs > 0]
+			spacing = float(np.min(pos)) if pos.size > 0 else rx_range
+		else:
+			spacing = rx_range
+
+		x0_disp = ax.transData.transform((x_min, 0))[0]
+		x1_disp = ax.transData.transform((x_min + spacing, 0))[0]
+		pixel_diff = abs(x1_disp - x0_disp)
+		if fig.dpi and pixel_diff > 0:
+			max_diameter_points = pixel_diff * 72.0 / fig.dpi
+		else:
+			max_diameter_points = 10.0
+		max_diameter_points *= 0.9
+		max_area = max_diameter_points ** 2
+
+		raw = counts.astype(float)
+		if raw.max() > 0:
+			sizes = (raw / raw.max()) * max_area
+		else:
+			sizes = np.full_like(raw, fill_value=(max_area * 0.2))
+
+		min_diameter_points = 2.0
+		min_area = min_diameter_points ** 2
+		sizes = np.clip(sizes, min_area, max_area)
+
+		ax.scatter(ux, yu, s=sizes, alpha=0.6)
 		ax.grid(True, linestyle='--', alpha=0.4)
 
 	fig.tight_layout()
