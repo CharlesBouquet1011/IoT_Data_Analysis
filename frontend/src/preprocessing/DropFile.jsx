@@ -16,6 +16,7 @@
 import { useState } from 'react'
 import Dropzone from 'react-dropzone'
 import DatePicker from "react-datepicker"
+import { AnalysisMenu } from './AnalysisMenu'
 
 export function UploadForm(){
 
@@ -94,7 +95,7 @@ export function UploadForm(){
 )}
 
         {processed && (
-          <SelectProcess />
+          <AnalysisMenu onChoice={(choice)=>{ console.log('Analysis choice:', choice) }} />
         )}
     </div>
       </>
@@ -279,60 +280,60 @@ className="w-full px-4 py-2 border border-gray-300 rounded-lg
 }
 
 // Fonction pour choisir le processus à appliquer après l'upload
-export function SelectProcess(){
-  const [selection, setSelection] = useState(0)
+// export function SelectProcess(){
+//   const [selection, setSelection] = useState(0)
 
-  return(
+//   return(
 
-    <>
-    <h4 className="text-lg font-semibold mt-8 mb-4 text-gray-800">
-      Choisissez ce que vous voulez faire du fichier
-    </h4>
-    <table className="w-full max-w-xl border-collapse border border-gray-200">
-      <tbody>
-        <tr className="hover:bg-gray-50">
-          <td className="p-4 border border-gray-200">
-            <label className="flex items-center space-x-3 cursor-pointer">
-              <input
-                type="radio"
-                name="choix"
-                value="1"
-                onClick={() => setSelection(1)}
-                className="form-radio text-indigo-600"
-              />
-              <span className="text-gray-800 font-medium">
-                TEXTE DESC SELECTION
-              </span>
-            </label>
-          </td>
-          <td className="p-4 border border-gray-200">
-            <label className="flex flex-col space-y-2 cursor-pointer">
-              <span className="flex items-center space-x-3">
-                <input
-                  type="radio"
-                  name="choix"
-                  value="2"
-                  onClick={() => setSelection(2)}
-                  className="form-radio text-indigo-600"
-                />
-                <span className="text-gray-800 font-medium">
-                  TEXTE AIDE SELECTION
-                </span>
-              </span>
-              <small className="text-xs text-red-500">
-                WARNING
-              </small>
-            </label>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+//     <>
+//     <h4 className="text-lg font-semibold mt-8 mb-4 text-gray-800">
+//       Choisissez ce que vous voulez faire du fichier
+//     </h4>
+//     <table className="w-full max-w-xl border-collapse border border-gray-200">
+//       <tbody>
+//         <tr className="hover:bg-gray-50">
+//           <td className="p-4 border border-gray-200">
+//             <label className="flex items-center space-x-3 cursor-pointer">
+//               <input
+//                 type="radio"
+//                 name="choix"
+//                 value="1"
+//                 onClick={() => setSelection(1)}
+//                 className="form-radio text-indigo-600"
+//               />
+//               <span className="text-gray-800 font-medium">
+//                 TEXTE DESC SELECTION
+//               </span>
+//             </label>
+//           </td>
+//           <td className="p-4 border border-gray-200">
+//             <label className="flex flex-col space-y-2 cursor-pointer">
+//               <span className="flex items-center space-x-3">
+//                 <input
+//                   type="radio"
+//                   name="choix"
+//                   value="2"
+//                   onClick={() => setSelection(2)}
+//                   className="form-radio text-indigo-600"
+//                 />
+//                 <span className="text-gray-800 font-medium">
+//                   TEXTE AIDE SELECTION
+//                 </span>
+//               </span>
+//               <small className="text-xs text-red-500">
+//                 WARNING
+//               </small>
+//             </label>
+//           </td>
+//         </tr>
+//       </tbody>
+//     </table>
     
-    {/* exemples d'utilisation, il faudra choisir les nombres que vous voulez pour mettre les fonctions que vous voulez
-    et rajouter des cases dans le tableau pour laisser le choix à l'utilisateur
-    */}
-    {/*succes && selection===1 ? <PreTraitement reload={reload} />: <></> */}
-    {/*succes && selection===2 ? <Verification reload={reload} /> : <></>*/}
-    </>
-  )
-}
+//     {/* exemples d'utilisation, il faudra choisir les nombres que vous voulez pour mettre les fonctions que vous voulez
+//     et rajouter des cases dans le tableau pour laisser le choix à l'utilisateur
+//     */}
+//     {/*succes && selection===1 ? <PreTraitement reload={reload} />: <></> */}
+//     {/*succes && selection===2 ? <Verification reload={reload} /> : <></>*/}
+//     </>
+//   )
+// }
