@@ -66,7 +66,7 @@ def Ouvre_Json_Util(path)->pd.DataFrame:
         for file in files:
             file=os.path.join(root,file)
             tempDf=open_processed_df(file)
-            if tempDf.empty or tempDf.isna().all(axis=None):
+            if (tempDf.empty or tempDf.isna().all(axis=None)) and len(list_df)>0:
                 continue #on ne veut pas ajouter notre DataFrame s'il n'y a rien dedans
             list_df.append(tempDf)
     df=pd.concat(list_df,axis=0,join='outer')
@@ -136,7 +136,7 @@ def Ouvre_Json_Cat_Util(path:str,cat:str)->pd.DataFrame:
             if cat in file:#on veut que le nom du fichier contienne le nom de la catégorie
                 file=os.path.join(root,file)
                 tempDf=open_processed_df(file)
-                if tempDf.empty or tempDf.isna().all(axis=None):
+                if (tempDf.empty or tempDf.isna().all(axis=None)) and len(list_df)>0:
                     continue #on ne veut pas ajouter notre DataFrame s'il n'y a rien dedans
                 list_df.append(tempDf)
     df=pd.concat(list_df,axis=0,join='outer')
