@@ -72,6 +72,17 @@ def Ouvre_Json_Util(path)->pd.DataFrame:
     df=pd.concat(list_df,axis=0,join='outer')
     return df
 
+def Ouvre_Tous_Json()->pd.DataFrame:
+    """
+    Docstring for Ouvre_Tous_Json
+    Ouvre toutes les données enregistrées
+    :return: Description
+    :rtype: DataFrame
+    """
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    path=os.path.join(script_dir,"Data")
+    return Ouvre_Json_Util(path)
+
 def Ouvre_Json_Annee(annee:int)->pd.DataFrame:
     """
     Docstring for Ouvre_Json
@@ -171,6 +182,43 @@ def Ouvre_Json_Categorie_Annee(annee:int,Categorie:str)->pd.DataFrame:
     script_dir = os.path.dirname(os.path.abspath(__file__))
     path=os.path.join(script_dir,"Data",str(annee))
     return Ouvre_Json_Cat_Util(path,Categorie)
+
+def Choose_Open(year:int,month:int,categories:list)->pd.DataFrame: 
+    #à tester quand je serai branché sur secteur et pas dans un train
+    """
+    Docstring for Choose_Open
+    
+    Choisis la meilleure fonction à utiliser en fonction des paramètres fournis
+    :param year: année ou None
+    :type year: int
+    :param month: mois ou None
+    :type month: int
+    :param categories: Liste des catégories ou None ou liste vide
+    :type categories: list
+    :return: Description
+    :rtype: DataFrame
+    """
+    try:
+        if (year and month and categories):
+            temp=[Ouvre_Json_Mois_Categorie(year,month,cat) for cat in categories]
+            df=pd.concat(temp,axis=0,join='outer')
+            return df
+        elif (not year and not month and not categories):
+            return Ouvre_Tous_Json() #on a rien donc on ouvre tout
+        elif (year and month and not categories):
+            return Ouvre_Json_Mois(year,month)
+        elif (year and not month and not categories):
+            return Ouvre_Json_Annee(year)
+        elif (year and not month and categories):
+            temp=[Ouvre_Json_Categorie_Annee(year,cat) for cat in categories]
+            return pd.concat(temp,asis=0,join="outer")
+        #normalement tous les cas possibles sont gérés, je ne peux pas avoir month sans avoir year
+    except FileNotFoundError:
+        print("fichier non trouvé")
+        return pd.DataFrame()
+    except ValueError:
+        print("fichier non trouvé")
+        return pd.DataFrame()
 
 
 if __name__=="__main__":

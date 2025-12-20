@@ -15,12 +15,12 @@
 import logo from './logo.svg';
 import './App.css';
 import './tailwind.css'
-import { UploadForm } from './preprocessing/DropFile';
+import { MenuPrincipal } from './menu/Menu'; //jsp pourquoi vscode m'indique une erreur ici mais ça fonctionne bien et sa solution ne fonctionne pas
 function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <UploadForm></UploadForm>
+        <MenuPrincipal />
         
       </header>
     </div>

@@ -1,8 +1,8 @@
 *.json
 !package.json
 *.png
-.jpg
-.webp
+*.jpg
+*.webp
 *.pyc
 *.txt
 !la.txt

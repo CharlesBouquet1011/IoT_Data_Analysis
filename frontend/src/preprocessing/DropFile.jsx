@@ -16,7 +16,6 @@
 import { useState } from 'react'
 import Dropzone from 'react-dropzone'
 import DatePicker from "react-datepicker"
-import { AnalysisMenu } from './AnalysisMenu'
 
 export function UploadForm(){
 
@@ -61,7 +60,7 @@ export function UploadForm(){
   
 
     return(<>
-    <div className="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow-md space-y-8">
+    
 
         <Dropzone
         onDrop={acceptedFiles => sendFile(acceptedFiles[0])}
@@ -88,22 +87,19 @@ export function UploadForm(){
             {erreur}
         </p>
         )}
-        {succes && !processed && (
+        {succes && (
   <>
-    <DateUploadForm setSucces={setSucces} setProcessed={setProcessed} />
+    <DateUploadForm setProcessed={setProcessed} processed={processed} />
   </>
 )}
 
-        {processed && (
-          <AnalysisMenu onChoice={(choice)=>{ console.log('Analysis choice:', choice) }} />
-        )}
-    </div>
+        
       </>
     )
 }
 
 
-export function DateUploadForm({ setSucces, setProcessed }){
+export function DateUploadForm({ setProcessed, processed }){
   const [date,setDate]=useState(null)
     
 
@@ -113,12 +109,17 @@ export function DateUploadForm({ setSucces, setProcessed }){
   const [erreur,setErreur]=useState("")
 
   const durations = [
-  { label: "1 jour", value: "1d" },
-  { label: "7 jours", value: "7d" },
-  { label: "1 mois", value: "1m" },
-  { label: "3 mois", value: "3m" },
-  { label: "6 mois", value: "6m" },
-  { label: "1 an", value: "1y" },
+  { label: "30 minutes", value: "30min" },
+  { label: "1 heure", value: "1h" },
+  { label: "2 heures", value: "2h" },
+  { label: "6 heures", value: "6h" },
+  { label: "12 heures", value: "12h" },
+  { label: "1 jour", value: "1D" },
+  { label: "7 jours", value: "7D" },
+  { label: "1 mois", value: "30D" },
+  { label: "3 mois", value: "90D" },
+  { label: "6 mois", value: "180D" },
+  { label: "1 an", value: "365D" },
 ];
 const attributs=["Airtime","BitRate","rssi","lsnr"] //rajouter des attributs ici si on veut
 
@@ -149,12 +150,10 @@ const attributs=["Airtime","BitRate","rssi","lsnr"] //rajouter des attributs ici
       const errData = await response.json().catch(() => ({}))
       console.log("Erreur response:", errData)
       setErreur(errData.error || `Erreur ${response.status}`)
-      if (typeof setSucces === 'function') setSucces(false)
     }
     else{
       console.log("Prétraitement réussi")
       setErreur("")
-      if (typeof setSucces === 'function') setSucces(true)
       if (typeof setProcessed === 'function') setProcessed(true)
     }
   }
@@ -204,7 +203,7 @@ className="w-full px-4 py-2 border border-gray-300 rounded-lg
   <div className="flex gap-4">
     <button
     onClick={()=>{setRollingIntervalType("Duree")
-      setRollingInterval("1d")
+      setRollingInterval("30min")
 
     }}
     className={`flex-1 py-2 rounded-lg font-semibold transition
@@ -268,6 +267,11 @@ className="w-full px-4 py-2 border border-gray-300 rounded-lg
             {erreur}
         </p>
         )}
+    {processed &&(
+      <p className="text-green-700 font-semibold bg-green-50 border border-green-200 rounded-lg px-4 py-2">
+          Les données ont bien été traitées choisissez maintenant le traitement des données à l'aide du menu
+      </p> 
+    )}
     <button
     onClick={()=>preprocessData()}
     className="w-full bg-blue-600 hover:bg-blue-700 text-white
