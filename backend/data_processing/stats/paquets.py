@@ -27,66 +27,126 @@ backend_dir=os.path.dirname(os.path.dirname(script_dir))
 plot_dir=os.path.join(backend_dir,"Images","Stats")
 
 def GatewayList(annee:int=None,mois:int=None)->ndarray:
-    df=Choose_Open(annee,mois, ["Join Request"])
+    df=Choose_Open(annee,mois,["Join Request"])
     gateway=df["GW_EUI"].unique()
     return gateway
 
-def _proportionGWCat(annee,mois,categorie,repartitions,GW):
+def GetListValues(caracteristique:str,annee:int=None,mois:int=None)->ndarray:
     """
-    Docstring for _proportion_ADR
-    
-    Fonction privée, ne l'utilisez pas seule
+    Docstring for GetList
+    Renvoie la liste de toutes les valeurs possibles d'une colonne caracteristique
+    :param caracteristique: la colonne du DataFrame
+    :param annee: Description
+    :type annee: int
+    :param mois: Description
+    :type mois: int
+    :return: Description
+    :rtype: ndarray[_AnyShape, dtype[Any]]
+    """
+    if caracteristique=="GW_EUI": ##cas spécial, on a cette caractéristique que dans les paquets Join Request,
+        #ça fonctionne probablement sans ce if mais je préfère ne pas prendre de risque
+        return GatewayList(annee,mois)
+    df=Choose_Open(annee,mois)
+    return df[caracteristique].unique()
+
+
+def _proportionCaraCat(caracteristique:str,valeurCaracteristique,alias:str,annee:int=None,mois:int=None,categorie:str=None,repartitions:list=None):
+    """
+    Docstring for _proportionCaraCat
+    Renvoie la répartition d'une caractéristique selon plusieurs catégories
+
+    :param caracteristique: La colonne du DatFrame concernée
+    :type caracteristique: str
+    :param valeurCaracteristique: La valeur concernée pour déterminer son pourcentage
+    :param alias: Description
+    :type alias: str
+    :param annee: Description
+    :type annee: int
+    :param mois: Description
+    :type mois: int
     :param categorie: Description
+    :type categorie: str
+    :param repartitions: Description
+    :type repartitions: list
     """
-    
     df=Choose_Open(annee,mois,[categorie])
-    nombre=len(df[df["GW_EUI"]==GW])
+    nombre=len(df[df[caracteristique]==valeurCaracteristique])
     tot=len(df)
-
     taux=nombre/tot 
-    repartitions.append({"categorie":categorie,"gw":taux})
+    repartitions.append({"categorie":categorie,alias:taux})
 
-def RepartitionGWCat(annee:int=None,mois:int=None):
-    for gw in GatewayList():
+def RepartitionCaracteristiqueParCategorie(caracteristique:str,alias:str,annee:int=None,mois:int=None)->list[str]:
+    """
+    Docstring for RepartitionCaracteristiqueParCategorie
+    Crée des histogrammes de répartition par valeur et par catégorie, chaque valeur de la caractéristique (colonne du DataFrame)
+    est un fichier différent avec chaque caractéristique sur chaque fichier
+
+    :param caracteristique:  intitulé de la caractéristique tel que présent dans le paquet
+    :type caracteristique: str
+    :param alias: nom couramment utilisé de la caractéristique
+    :type alias: str
+    :param annee: Description
+    :type annee: int
+    :param mois: Description
+    :type mois: int
+    :return: Description
+    :rtype: list[str]
+    """
+    for valeurCaracteristique in GetListValues(caracteristique,annee,mois):
         repartitions=[]
-        plot_file=os.path.join(plot_dir,f"Repartition_GW_Categories_{gw}.webp")
-        [_proportionGWCat(annee,mois,cat,repartitions,gw) for cat in categories] #plots
+        plot_files={}
+        #{nomImage:cheminImage}
+        plot_file=os.path.join(plot_dir,f"Repartition_{alias.replace("/","-")}_Categories_{valeurCaracteristique.replace("/","-")}.webp")
+        [_proportionCaraCat(caracteristique,valeurCaracteristique,alias,annee,mois,categorie,repartitions) for categorie in categories] #plots
         df=pd.DataFrame(repartitions).set_index("categorie")
         df.plot(kind='bar',legend=False)
-        plt.ylabel(f"Proportion GW: {gw}")
+        plt.ylabel(f"Proportion {caracteristique}={valeurCaracteristique} par categorie")
         plt.ylim(0, 1)
         plt.tight_layout()
         plt.savefig(plot_file)
+        plot_files[f"{caracteristique}={valeurCaracteristique}"]=plot_file
         plt.clf()
+    return plot_files
+        
 
-def _proportionGW(annee,mois,repartitions,GW):
-    """
-    Docstring for _proportion_ADR
-    
-    Fonction privée, ne l'utilisez pas seule
-    :param categorie: Description
-    """
-    
+def _proportionCaracteristique(annee,mois,repartitions,caracteristique,nomCaracteristique,valeurCaracteristique):
     df=Choose_Open(annee,mois)
-    nombre=len(df[df["GW_EUI"]==GW])
-    tot=len(df)
+    nombre=len(df[df[caracteristique]==valeurCaracteristique])
+    tot=len(df)  
+    taux=nombre/tot
+    repartitions.append({nomCaracteristique:valeurCaracteristique,"taux":taux})  
 
-    taux=nombre/tot 
-    repartitions.append({"gateway":GW,"taux":taux})
+def RepartitionCaracteristiqueGlobale(caracteristique:str,alias:str,annee:int=None,mois:int=None)->str:
+    """
+    Docstring for RepartitionCaracteristiqueGlobale
+    Crée des histogrammes de répartition par valeur selon la caractéristique (colonne du DataFrame) indiquée
 
-def RepartitionGWTot(annee:int=None,mois:int=None):
+    :param caracteristique: intitulé de la caractéristique tel que présent dans le paquet
+    :type caracteristique: str
+    :param alias: Nom couramment utilisé de la caractéristique
+    :type alias: str
+    :param annee: Description
+    :type annee: int
+    :param mois: Description
+    :type mois: int
+    :return: chemin du fichier créé
+    :rtype: str
+    """
     repartitions=[]
-    plot_file=os.path.join(plot_dir,f"Repartition_GW_Totale.webp")
-    [_proportionGW(annee,mois,repartitions,gw) for gw in GatewayList(annee,mois)] #plots
-    df=pd.DataFrame(repartitions).set_index("gateway")
+    plot_file=os.path.join(plot_dir,f"Repartition_{alias}_Globale.webp")
+    [_proportionCaracteristique(annee,mois,repartitions,caracteristique,alias,gw) for gw in GetListValues(caracteristique,annee,mois)] #plots
+    df=pd.DataFrame(repartitions).set_index(alias)
     df.plot(kind='bar',legend=False)
-    plt.ylabel(f"Proportion GW totale")
+    nom=f"Proportion {alias} globale"
+    plt.ylabel(nom)
     plt.ylim(0, 1)
     plt.tight_layout()
     plt.savefig(plot_file)
     plt.clf()
-    
-
+    return {nom:plot_file}
 if __name__=="__main__":
-    RepartitionGWCat()
-    RepartitionGWTot()
+    execution={"GW_EUI":"gateway","Bandwidth":"BW","SF":"Spreading Factor","codr":"coding rate"}
+    for caracteristique,alias in execution.items():
+
+        RepartitionCaracteristiqueParCategorie(caracteristique,alias)
+        RepartitionCaracteristiqueGlobale(caracteristique,alias)

@@ -16,7 +16,7 @@ FROM python:3.14.2-slim AS backend
 WORKDIR /app
 COPY ./backend /app
 EXPOSE 8000
-RUN pip install --no-cache-dir pandas xlsxwriter matplotlib numpy Pillow fastapi[standard] uvicorn scikit-learn
+RUN pip install --no-cache-dir pandas xlsxwriter matplotlib numpy Pillow fastapi[standard] uvicorn scikit-learn cachetools
 
 RUN adduser --system --group python
 RUN chown -R python:python /app && chmod 755 -R /app

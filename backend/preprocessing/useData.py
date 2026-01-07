@@ -38,6 +38,9 @@ Ouvre_Json_Categorie_Annee:
 """
 import pandas as pd
 import os
+from cachetools import TTLCache, cached
+cache = TTLCache(maxsize=100, ttl=60) #TTL de 60 secondes, max 100 éléments mémorisés cache nécessaire pour accélérer les algos
+#peu intéressant d'optimiser comme c'est surtout des essais de différentes méthodes
 
 def open_processed_df(file:str)->pd.DataFrame:
     """
@@ -51,7 +54,7 @@ def open_processed_df(file:str)->pd.DataFrame:
     """
     df= pd.read_json(file,orient="index")
     return df
-
+@cached(cache) #cache pour accès plus rapide
 def Ouvre_Json_Util(path)->pd.DataFrame:
     """
     Docstring for Ouvre_Json_Util
@@ -128,7 +131,7 @@ def Ouvre_Json_Mois_Categorie(annee:int,mois:int,Categorie:str)->pd.DataFrame:
     file=os.path.join(script_dir,"Data",str(annee),str(mois),Categorie+".json")
     df=open_processed_df(file)
     return df
-
+@cached(cache) #cache pour accès plus rapide
 def Ouvre_Json_Cat_Util(path:str,cat:str)->pd.DataFrame: 
     """
     Docstring for Ouvre_Json_Cat_Util
