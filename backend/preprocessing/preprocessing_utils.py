@@ -68,6 +68,7 @@ def produce_dataset(df:pd.DataFrame,verbose:bool,undefined_toggle:bool,outlier_t
         
     if verbose: print(f"Remaining packets after processing: {len(df)}") # VERBOSE sauvegarde du dataset
     df=addColAdr(df)
+    df.drop("outlier",axis=1,inplace=True)
     df.to_json(fichier_sortie, orient="index", indent=2) #il faudra readJson avec orient="index"
     print("custom_dataset.json generated successfully.") # VERBOSE terminé !
     return df #au cas où
@@ -164,6 +165,6 @@ if __name__=="__main__":
     #lancer le script EN TANT QUE MODULE, sinon ça ne fonctionnera pas
     script_dir = os.path.dirname(os.path.abspath(__file__))
     file=os.path.join(script_dir,"Raw","raw.json")
-    prepare_data(2025,12,30,["BitRate","rssi","lsnr"],file)
+    prepare_data(2023,12,30,["BitRate","rssi","lsnr"],file)
 
     

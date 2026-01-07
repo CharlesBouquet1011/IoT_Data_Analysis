@@ -183,6 +183,19 @@ def Ouvre_Json_Categorie_Annee(annee:int,Categorie:str)->pd.DataFrame:
     path=os.path.join(script_dir,"Data",str(annee))
     return Ouvre_Json_Cat_Util(path,Categorie)
 
+def Ouvre_Tous_Json_Cat(cat:str)->pd.DataFrame:
+    """
+    Docstring for Ouvre_Tous_Json_Cat
+    
+    :param cat: Catégorie
+    :type cat: str
+    :return: Données correspondantes
+    :rtype: DataFrame
+    """
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    path=os.path.join(script_dir,"Data")
+    return Ouvre_Json_Cat_Util(path,cat)
+    
 def Choose_Open(year:int,month:int,categories:list)->pd.DataFrame: 
     #à tester quand je serai branché sur secteur et pas dans un train
     """
@@ -211,7 +224,11 @@ def Choose_Open(year:int,month:int,categories:list)->pd.DataFrame:
             return Ouvre_Json_Annee(year)
         elif (year and not month and categories):
             temp=[Ouvre_Json_Categorie_Annee(year,cat) for cat in categories]
-            return pd.concat(temp,asis=0,join="outer")
+            return pd.concat(temp,axis=0,join="outer")
+        elif (not year and not month and categories):
+            temp=[Ouvre_Tous_Json_Cat(cat) for cat in categories]
+            return pd.concat(temp,axis=0,join="outer")
+            
         #normalement tous les cas possibles sont gérés, je ne peux pas avoir month sans avoir year
     except FileNotFoundError:
         print("fichier non trouvé")
