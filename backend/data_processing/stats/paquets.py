@@ -96,7 +96,7 @@ def RepartitionCaracteristiqueParCategorie(caracteristique:str,alias:str,annee:i
         repartitions=[]
         plot_files={}
         #{nomImage:cheminImage}
-        plot_file=os.path.join(plot_dir,f"Repartition_{alias.replace("/","-")}_Categories_{valeurCaracteristique.replace("/","-")}.webp")
+        plot_file=os.path.join(plot_dir,f"Repartition_{alias.replace("/","-")}_Categories_{str(valeurCaracteristique).replace("/","-")}.webp")
         [_proportionCaraCat(caracteristique,valeurCaracteristique,alias,annee,mois,categorie,repartitions) for categorie in categories] #plots
         df=pd.DataFrame(repartitions).set_index("categorie")
         df.plot(kind='bar',legend=False)
@@ -105,7 +105,7 @@ def RepartitionCaracteristiqueParCategorie(caracteristique:str,alias:str,annee:i
         plt.tight_layout()
         plt.savefig(plot_file)
         plot_files[f"{caracteristique}={valeurCaracteristique}"]=plot_file
-        plt.clf()
+        plt.close()
     return plot_files
         
 
@@ -142,10 +142,10 @@ def RepartitionCaracteristiqueGlobale(caracteristique:str,alias:str,annee:int=No
     plt.ylim(0, 1)
     plt.tight_layout()
     plt.savefig(plot_file)
-    plt.clf()
+    plt.close()
     return {nom:plot_file}
 if __name__=="__main__":
-    execution={"GW_EUI":"gateway","Bandwidth":"BW","SF":"Spreading Factor","codr":"coding rate"}
+    execution={"GW_EUI":"gateway","Bandwidth":"BW","SF":"Spreading Factor","codr":"coding rate","freq":"Sous Bande"}
     for caracteristique,alias in execution.items():
 
         RepartitionCaracteristiqueParCategorie(caracteristique,alias)
