@@ -21,15 +21,8 @@ Fonctions:
 """
 
 from ...preprocessing.useData import Choose_Open
-import pandas as pd
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import os
 from numpy import ndarray
 categories=["Confirmed Data Up","Confirmed Data Down","Join Accept","Join Request","Proprietary","RFU","Unconfirmed Data Up","Unconfirmed Data Down"]
-script_dir=os.path.dirname(os.path.abspath(__file__))
-backend_dir=os.path.dirname(os.path.dirname(script_dir))
 
 def nombreDevices(annee:int=None,mois:int=None)->int:
     df=Choose_Open(annee,mois, ["Join Request"])

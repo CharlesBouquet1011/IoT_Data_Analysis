@@ -36,6 +36,8 @@ def Repartition_ADR_Cat():
     plt.ylim(0, 1)
     plt.tight_layout()
     plt.savefig(plot_file)
+    plt.clf()
+
 
 if __name__=="__main__":
 
