@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-import { useState } from "react"
+import { useState,useEffect } from "react"
 import { useChoosedData } from "../menu/Menu"
 
 
@@ -50,6 +50,7 @@ export function Statistiques(){
             setErreur("")
             const data= await response.json()
             setImages(data.images)
+
             
         }
     }
@@ -58,12 +59,21 @@ export function Statistiques(){
 
         <>
         <ChooseColumns choosedColumns={choosedColumns} setChoosedColumns={(columns)=>setChoosedColumns(columns)}></ChooseColumns>
-    
-        {choosedColumns.length!==0 &&(
-            <>
-            1ère colonne choisie: {choosedColumns[0]}
-            <button onClick={()=>processData()}> Afficher les résultats </button>
-            </>
+        {erreur && (
+            <p className="text-red-600 font-semibold bg-red-50 border border-red-200 rounded-lg px-4 py-2 mt-4">
+            {erreur}
+            </p>
+        )}
+        {choosedColumns.length !== 0 && (
+            <button
+            onClick={() => processData()}
+            className="mt-4 w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition"
+            >
+            Afficher les résultats
+            </button>
+        )}
+        {Object.keys(images).length>0 &&(
+            <DisplayImages images={images} />
         )}
         </>
     )
@@ -73,7 +83,7 @@ export function Statistiques(){
 
 function ChooseColumns({choosedColumns,setChoosedColumns}){
     const columns=["Bandwidth","Coding_rate","GW_EUI","SF","freq","modu","adr"]
-    const {mois,annee}=useChoosedData()
+//     const {mois,annee}=useChoosedData()
 //     const [error,setError]=useState(false)
 //     const [loaded,setLoaded]=useState(false)
 //     useEffect(()=>{
@@ -154,13 +164,32 @@ function ChooseColumns({choosedColumns,setChoosedColumns}){
         </>
     )
 
-    function DisplayImages({paths}){
+    
+    
+}
+
+function DisplayImages({images}){
 
 
         return (
-        <>
-        
-        </>)
+        <div className="mt-6 space-y-6">
+            {Object.entries(images).map(([categorie, dict]) => (
+                <div key={categorie} className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">{categorie}</h3>
+                <div className="flex flex-wrap gap-4">
+                    {Object.entries(dict).map(([nom, image]) => (
+                    <div key={nom} className="flex flex-col items-center">
+                        <img
+                        src={image}
+                        alt={nom}
+                        className="w-32 h-32 object-cover rounded-md border border-gray-300"
+                        />
+                        <span className="text-sm text-gray-700 mt-1 truncate">{nom}</span>
+                    </div>
+                    ))}
+                </div>
+                </div>
+            ))}
+        </div>
+    )
     }
-    
-}
