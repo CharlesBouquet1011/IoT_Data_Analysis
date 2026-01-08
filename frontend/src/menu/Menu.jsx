@@ -2,7 +2,7 @@ import { useState,createContext,useContext,useEffect } from 'react'
 import { UploadForm } from '../preprocessing/DropFile'
 import DatePicker from "react-datepicker"
 import {AnalysisMenu} from "../preprocessing/AnalysisMenu"
-
+import { Statistiques } from '../data_processing/Stat'
 const DataContext = createContext();
 
 export function MenuPrincipal(){
@@ -69,6 +69,7 @@ export function ChooseData(){
     const [month,setMonth]=useState(null)
     const [year,setYear]=useState(null)
     var [mois,annee]=[null,null]
+    const [traitement,setTraitement]=useState(0)
     useEffect(()=>{
         if (month) mois=month.getMonth()+1
         if (year) annee=year.getFullYear()
@@ -122,8 +123,28 @@ export function ChooseData(){
 
     {(catList.length>0 || month || year) &&(
         <DataContext.Provider value={{catList,mois,annee}}>
-            <AnalysisMenu onChoice={(choice)=>{ console.log('Analysis choice:', choice) }} />
+            <AnalysisMenu onChoice={(choice)=>{ setTraitement(choice)}} />
 
+            {traitement==1 &&(
+                <>
+                Code affichage régression ici
+                </>
+            )}
+            {traitement==2 &&(
+                <>
+                Code affichage saisonnalité ici
+                </>
+            )}
+            {traitement==3 && (
+                <>
+                Code affichage clustering ici
+                </>
+            )}
+            {
+                traitement==4 && (
+                    <Statistiques/>
+                )
+            }
         </DataContext.Provider>
 
     )}
@@ -134,7 +155,7 @@ export function ChooseData(){
 export function useChoosedData(){
     const context=useContext(DataContext)
     if (!context){
-        throw new Error('useCSRF doit être utilisé à l\'intérieur du AuthProvider');
+        throw new Error('useCSRF doit être utilisé à l\'intérieur du DataContext Provider');
     }
     return context
 
