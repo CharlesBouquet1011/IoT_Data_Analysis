@@ -20,7 +20,7 @@ Fonctions:
 
 """
 
-from ...preprocessing.useData import Choose_Open
+from preprocessing.useData import Choose_Open #pour executer ce fichier or du serveur, rajouter ... devant le module
 from numpy import ndarray
 categories=["Confirmed Data Up","Confirmed Data Down","Join Accept","Join Request","Proprietary","RFU","Unconfirmed Data Up","Unconfirmed Data Down"]
 

@@ -14,7 +14,7 @@
 """
 Docstring for backend.data_processing.stats.paquets
 """
-from ...preprocessing.useData import Choose_Open
+from preprocessing.useData import Choose_Open #pour executer ce fichier or du serveur, rajouter ... devant le module
 import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
@@ -75,7 +75,11 @@ def _proportionCaraCat(caracteristique:str,valeurCaracteristique,alias:str,annee
     taux=nombre/tot 
     repartitions.append({"categorie":categorie,alias:taux})
 
-def RepartitionCaracteristiqueParCategorie(caracteristique:str,alias:str,annee:int=None,mois:int=None)->list[str]:
+def ColumnsList(annee:int=None,mois:int=None)->list:
+    df=Choose_Open(annee,mois)
+    return df.columns.values.tolist()
+
+def RepartitionCaracteristiqueParCategorie(caracteristique:str,alias:str,annee:int=None,mois:int=None)->dict:
     """
     Docstring for RepartitionCaracteristiqueParCategorie
     Crée des histogrammes de répartition par valeur et par catégorie, chaque valeur de la caractéristique (colonne du DataFrame)
@@ -92,9 +96,9 @@ def RepartitionCaracteristiqueParCategorie(caracteristique:str,alias:str,annee:i
     :return: Description
     :rtype: list[str]
     """
+    plot_files={}
     for valeurCaracteristique in GetListValues(caracteristique,annee,mois):
         repartitions=[]
-        plot_files={}
         #{nomImage:cheminImage}
         plot_file=os.path.join(plot_dir,f"Repartition_{alias.replace("/","-")}_Categories_{str(valeurCaracteristique).replace("/","-")}.webp")
         [_proportionCaraCat(caracteristique,valeurCaracteristique,alias,annee,mois,categorie,repartitions) for categorie in categories] #plots
@@ -116,7 +120,7 @@ def _proportionCaracteristique(annee,mois,repartitions,caracteristique,nomCaract
     taux=nombre/tot
     repartitions.append({nomCaracteristique:valeurCaracteristique,"taux":taux})  
 
-def RepartitionCaracteristiqueGlobale(caracteristique:str,alias:str,annee:int=None,mois:int=None)->str:
+def RepartitionCaracteristiqueGlobale(caracteristique:str,alias:str,annee:int=None,mois:int=None)->dict:
     """
     Docstring for RepartitionCaracteristiqueGlobale
     Crée des histogrammes de répartition par valeur selon la caractéristique (colonne du DataFrame) indiquée

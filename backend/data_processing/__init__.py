@@ -1,1 +1,1 @@
-from .stats import Repartition_ADR_Cat,RepartitionCaracteristiqueGlobale,RepartitionCaracteristiqueParCategorie,nombreDevices
+from .stats import Repartition_ADR_Cat,RepartitionCaracteristiqueGlobale,RepartitionCaracteristiqueParCategorie,nombreDevices,ColumnsList,RepartitionAdrGlobale

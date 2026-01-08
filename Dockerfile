@@ -20,6 +20,12 @@ RUN pip install --no-cache-dir pandas xlsxwriter matplotlib numpy Pillow fastapi
 
 RUN adduser --system --group python
 RUN chown -R python:python /app && chmod 755 -R /app
+# Crée un dossier de cache pour matplotlib et donne les droits à l'utilisateur python
+RUN mkdir -p /tmp/matplotlib-cache && chown -R python:python /tmp/matplotlib-cache
+
+# Définit la variable d'environnement pour matplotlib
+ENV MPLCONFIGDIR=/tmp/matplotlib-cache
+
 USER python
 CMD ["uvicorn", "server.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 #modifier la ligne pour un serveur http basique

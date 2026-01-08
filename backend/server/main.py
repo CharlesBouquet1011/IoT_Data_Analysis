@@ -20,7 +20,7 @@ from fastapi import FastAPI,UploadFile,File,HTTPException
 import os
 from server.models.preprocessing import PreprocessRequest
 from preprocessing import prepare_data
-from routes import stats
+from server.routes import stats
 #Initialisation
 app = FastAPI()
 app.include_router(stats.router)

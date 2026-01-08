@@ -125,23 +125,30 @@ export function ChooseData(){
         <DataContext.Provider value={{catList,mois,annee}}>
             <AnalysisMenu onChoice={(choice)=>{ setTraitement(choice)}} />
 
-            {traitement==1 &&(
+            {traitement===1 &&(
                 <>
                 Code affichage régression ici
                 </>
             )}
-            {traitement==2 &&(
+            {traitement===2 &&(
                 <>
                 Code affichage saisonnalité ici
                 </>
             )}
-            {traitement==3 && (
+            {traitement===3 && (
                 <>
                 Code affichage clustering ici
                 </>
             )}
             {
-                traitement==4 && (
+                traitement===4 && (
+                    <>
+                    Code Affichage Trends ici
+                    </>
+                )
+            }
+            {
+                traitement===5 && (
                     <Statistiques/>
                 )
             }

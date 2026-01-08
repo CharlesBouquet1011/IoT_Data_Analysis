@@ -1,3 +1,3 @@
-from .paquets import RepartitionCaracteristiqueGlobale,RepartitionCaracteristiqueParCategorie
-from .adr import Repartition_ADR_Cat
+from .paquets import RepartitionCaracteristiqueGlobale,RepartitionCaracteristiqueParCategorie,ColumnsList
+from .adr import Repartition_ADR_Cat,RepartitionAdrGlobale
 from .devices import nombreDevices
