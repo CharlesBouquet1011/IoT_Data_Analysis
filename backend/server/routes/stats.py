@@ -4,11 +4,6 @@ import os
 from server.models.stats.processing import ProcessRequest
 
 router = APIRouter(prefix="/api/stats", tags=["stats"])
-script_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir=os.path.dirname(script_dir)
-image_dir=os.path.join(parent_dir,"Images")
-data_dir=os.path.join(parent_dir,"preprocessing","Data")
-raw_data_dir=os.path.join(parent_dir,"preprocessing","Raw")
 
 
 @router.get("/ColumnList")
