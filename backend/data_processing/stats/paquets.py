@@ -47,7 +47,9 @@ def GetListValues(caracteristique:str,annee:int=None,mois:int=None)->ndarray:
         #ça fonctionne probablement sans ce if mais je préfère ne pas prendre de risque
         return GatewayList(annee,mois)
     df=Choose_Open(annee,mois)
-    return df[caracteristique].unique()
+    liste=df[caracteristique].unique()
+    liste.sort()
+    return liste
 
 
 def _proportionCaraCat(caracteristique:str,valeurCaracteristique,alias:str,annee:int=None,mois:int=None,categorie:str=None,repartitions:list=None):
@@ -104,7 +106,9 @@ def RepartitionCaracteristiqueParCategorie(caracteristique:str,alias:str,annee:i
         [_proportionCaraCat(caracteristique,valeurCaracteristique,alias,annee,mois,categorie,repartitions) for categorie in categories] #plots
         df=pd.DataFrame(repartitions).set_index("categorie")
         df.plot(kind='bar',legend=False)
-        plt.ylabel(f"Proportion {caracteristique}={valeurCaracteristique} par categorie")
+        plt.ylabel("Taux")
+        plt.xlabel(alias)
+        plt.title(f"Proportion {caracteristique}={valeurCaracteristique} par categorie")
         plt.ylim(0, 1)
         plt.tight_layout()
         plt.savefig(plot_file)
@@ -133,8 +137,8 @@ def RepartitionCaracteristiqueGlobale(caracteristique:str,alias:str,annee:int=No
     :type annee: int
     :param mois: Description
     :type mois: int
-    :return: chemin du fichier créé
-    :rtype: str
+    :return: nom et chemin du fichier créé
+    :rtype: dict
     """
     repartitions=[]
     plot_file=os.path.join(plot_dir,f"Repartition_{alias}_Globale.webp")
@@ -142,14 +146,47 @@ def RepartitionCaracteristiqueGlobale(caracteristique:str,alias:str,annee:int=No
     df=pd.DataFrame(repartitions).set_index(alias)
     df.plot(kind='bar',legend=False)
     nom=f"Proportion {alias} globale"
-    plt.ylabel(nom)
+    plt.ylabel("Taux")
+    plt.title(nom)
+    plt.xlabel(alias)
     plt.ylim(0, 1)
+    plt.tight_layout()
+    plt.savefig(plot_file)
+    plt.close()
+    return {nom:plot_file}
+
+def plotHistogramGlobal(caracteristique:str,alias:str,annee:int=None,mois:int=None):
+    plot_file=os.path.join(plot_dir,f"Histogramme_{alias}_Global.webp")
+    df=Choose_Open(annee,mois)
+    df.hist(column=caracteristique,legend=True)
+    nom=f"Histogramme {alias} globale"
+    plt.ylabel("nombre d'occurrences")
+    plt.title(nom)
+    plt.xlabel(alias)
+    plt.tight_layout()
+    plt.savefig(plot_file)
+    plt.close()
+    return {nom:plot_file}
+def plotHistogrammeParType(caracteristique:str,alias:str,annee:int|None=None,mois:int|None=None):
+    plot_file=os.path.join(plot_dir,f"Histogramme_{alias}_Categorie.webp")
+    df=Choose_Open(annee,mois)
+    df.hist(column=caracteristique,legend=True,by="Type",
+            figsize=(16, 8),      # Plus large et plus haut
+            layout=(2, 4),        # 2 lignes, 4 colonnes = 8 subplots
+            sharex=True
+            )
+    nom=f"Histogrammes {alias} par type de paquet"
+    plt.ylabel("nombre d'occurrences")
+    plt.suptitle(nom)
+    plt.xlabel(alias)
     plt.tight_layout()
     plt.savefig(plot_file)
     plt.close()
     return {nom:plot_file}
 if __name__=="__main__":
     execution={"GW_EUI":"gateway","Bandwidth":"BW","SF":"Spreading Factor","codr":"coding rate","freq":"Sous Bande"}
+    plotHistogramGlobal("lsnr","SNR")
+    plotHistogrammeParType("lsnr","SNR")
     for caracteristique,alias in execution.items():
 
         RepartitionCaracteristiqueParCategorie(caracteristique,alias)

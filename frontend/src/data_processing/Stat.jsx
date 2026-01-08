@@ -21,6 +21,7 @@ export function Statistiques(){
     const [images,setImages]=useState({})
     const [erreur,setErreur]=useState("")
     async function processData(){
+        setErreur("")
         if (choosedColumns.length===0){
         setErreur("Veuillez indiquer les colonnes que vous souhaiter traiter")
         return ;
@@ -82,7 +83,10 @@ export function Statistiques(){
 
 
 function ChooseColumns({choosedColumns,setChoosedColumns}){
-    const columns=["Bandwidth","Coding_rate","GW_EUI","SF","freq","modu","adr"]
+    const columns=["Bandwidth","Coding_rate","GW_EUI","SF","freq","modu","adr","rfch", //métriques pour proportion
+        "BitRate","Airtime","lsnr","rssi","size"//métriques pour histogramme
+
+    ]
 //     const {mois,annee}=useChoosedData()
 //     const [error,setError]=useState(false)
 //     const [loaded,setLoaded]=useState(false)
@@ -179,11 +183,15 @@ function DisplayImages({images}){
                 <div className="flex flex-wrap gap-4">
                     {Object.entries(dict).map(([nom, image]) => (
                     <div key={nom} className="flex flex-col items-center">
-                        <img
-                        src={image}
-                        alt={nom}
-                        className="w-32 h-32 object-cover rounded-md border border-gray-300"
-                        />
+                        <a href={image}
+                        target="_blank"
+                        rel="noopener noreferrer">
+                            <img
+                            src={image}
+                            alt={nom}
+                            className="w-32 h-32 object-cover rounded-md border border-gray-300"
+                            />
+                        </a>
                         <span className="text-sm text-gray-700 mt-1 truncate">{nom}</span>
                     </div>
                     ))}

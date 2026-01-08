@@ -1,3 +1,3 @@
-from .paquets import RepartitionCaracteristiqueGlobale,RepartitionCaracteristiqueParCategorie,ColumnsList
+from .paquets import RepartitionCaracteristiqueGlobale,RepartitionCaracteristiqueParCategorie,ColumnsList,plotHistogramGlobal,plotHistogrammeParType
 from .adr import Repartition_ADR_Cat,RepartitionAdrGlobale
 from .devices import nombreDevices
