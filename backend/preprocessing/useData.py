@@ -229,7 +229,8 @@ def Choose_Open(year:int=None,month:int=None,categories:list=None)->pd.DataFrame
             temp=[Ouvre_Json_Categorie_Annee(year,cat) for cat in categories]
             return pd.concat(temp,axis=0,join="outer")
         elif (not year and not month and categories):
-            return Ouvre_Tous_Json() #bien plus rapide
+            temp=[Ouvre_Tous_Json_Cat(cat) for cat in categories]
+            return pd.concat(temp,axis=0,join="outer")
             
         #normalement tous les cas possibles sont gérés, je ne peux pas avoir month sans avoir year
     except FileNotFoundError:

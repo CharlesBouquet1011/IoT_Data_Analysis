@@ -50,8 +50,32 @@ def GetListValues(caracteristique:str,annee:int=None,mois:int=None)->ndarray:
     liste=df[caracteristique].unique()
     liste.sort()
     return liste
+# à implémenter, c'est aussi intéressant à voir
+# def _proportionCaraCat(caracteristique:str,valeurCaracteristique,alias:str,annee:int=None,mois:int=None,categorie:str=None,repartitions:list=None):
+#     """
+#     Docstring for _proportionCaraCat
+#     Renvoie la répartition d'une caractéristique selon plusieurs catégories
 
-
+#     :param caracteristique: La colonne du DatFrame concernée
+#     :type caracteristique: str
+#     :param valeurCaracteristique: La valeur concernée pour déterminer son pourcentage
+#     :param alias: Description
+#     :type alias: str
+#     :param annee: Description
+#     :type annee: int
+#     :param mois: Description
+#     :type mois: int
+#     :param categorie: Description
+#     :type categorie: str
+#     :param repartitions: Description
+#     :type repartitions: list
+#     """
+#     df=Choose_Open(annee,mois)
+#     dfCat=df[df["Type"]==categorie]
+#     nombre=len(dfCat[dfCat[caracteristique]==valeurCaracteristique])
+#     tot=len(df[df[caracteristique]==valeurCaracteristique])
+#     taux=nombre/tot 
+#     repartitions.append({"categorie":categorie,alias:taux})
 def _proportionCaraCat(caracteristique:str,valeurCaracteristique,alias:str,annee:int=None,mois:int=None,categorie:str=None,repartitions:list=None):
     """
     Docstring for _proportionCaraCat
@@ -159,7 +183,7 @@ def plotHistogramGlobal(caracteristique:str,alias:str,annee:int=None,mois:int=No
     plot_file=os.path.join(plot_dir,f"Histogramme_{alias}_Global.webp")
     df=Choose_Open(annee,mois)
     df.hist(column=caracteristique,legend=True)
-    nom=f"Histogramme {alias} globale"
+    nom=f"Histogramme {alias} global"
     plt.ylabel("nombre d'occurrences")
     plt.title(nom)
     plt.xlabel(alias)
