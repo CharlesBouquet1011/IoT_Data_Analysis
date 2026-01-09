@@ -198,8 +198,9 @@ def Ouvre_Tous_Json_Cat(cat:str)->pd.DataFrame:
     script_dir = os.path.dirname(os.path.abspath(__file__))
     path=os.path.join(script_dir,"Data")
     return Ouvre_Json_Cat_Util(path,cat)
-    
-def Choose_Open(year:int=None,month:int=None,categories:list=None)->pd.DataFrame: 
+
+@cached(cache) #cache pour accès plus rapide
+def Choose_Open(year:int=None,month:int=None,categories:tuple=None)->pd.DataFrame: 
     #à tester quand je serai branché sur secteur et pas dans un train
     """
     Docstring for Choose_Open

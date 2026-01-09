@@ -27,7 +27,7 @@ backend_dir=os.path.dirname(os.path.dirname(script_dir))
 plot_dir=os.path.join(backend_dir,"Images","Stats")
 
 def GatewayList(annee:int=None,mois:int=None)->ndarray:
-    df=Choose_Open(annee,mois,["Join Request"])
+    df=Choose_Open(annee,mois,("Join Request",))
     gateway=df["GW_EUI"].unique()
     return gateway
 
@@ -50,36 +50,10 @@ def GetListValues(caracteristique:str,annee:int=None,mois:int=None)->ndarray:
     liste=df[caracteristique].unique()
     liste.sort()
     return liste
-# à implémenter, c'est aussi intéressant à voir
-# def _proportionCaraCat(caracteristique:str,valeurCaracteristique,alias:str,annee:int=None,mois:int=None,categorie:str=None,repartitions:list=None):
-#     """
-#     Docstring for _proportionCaraCat
-#     Renvoie la répartition d'une caractéristique selon plusieurs catégories
-
-#     :param caracteristique: La colonne du DatFrame concernée
-#     :type caracteristique: str
-#     :param valeurCaracteristique: La valeur concernée pour déterminer son pourcentage
-#     :param alias: Description
-#     :type alias: str
-#     :param annee: Description
-#     :type annee: int
-#     :param mois: Description
-#     :type mois: int
-#     :param categorie: Description
-#     :type categorie: str
-#     :param repartitions: Description
-#     :type repartitions: list
-#     """
-#     df=Choose_Open(annee,mois)
-#     dfCat=df[df["Type"]==categorie]
-#     nombre=len(dfCat[dfCat[caracteristique]==valeurCaracteristique])
-#     tot=len(df[df[caracteristique]==valeurCaracteristique])
-#     taux=nombre/tot 
-#     repartitions.append({"categorie":categorie,alias:taux})
-def _proportionCaraCat(caracteristique:str,valeurCaracteristique,alias:str,annee:int=None,mois:int=None,categorie:str=None,repartitions:list=None):
+def _RepartitionCaraCat(caracteristique:str,valeurCaracteristique,alias:str,annee:int=None,mois:int=None,categorie:str=None,repartitions:list=None):
     """
     Docstring for _proportionCaraCat
-    Renvoie la répartition d'une caractéristique selon plusieurs catégories
+    Renvoie la répartition selon les types de paquets dans une caractéristique
 
     :param caracteristique: La colonne du DatFrame concernée
     :type caracteristique: str
@@ -95,7 +69,32 @@ def _proportionCaraCat(caracteristique:str,valeurCaracteristique,alias:str,annee
     :param repartitions: Description
     :type repartitions: list
     """
-    df=Choose_Open(annee,mois,[categorie])
+    df=Choose_Open(annee,mois)
+    dfCat=df[df["Type"]==categorie]
+    nombre=len(dfCat[dfCat[caracteristique]==valeurCaracteristique])
+    tot=len(df[df[caracteristique]==valeurCaracteristique])
+    taux=nombre/tot 
+    repartitions.append({"categorie":categorie,alias:taux})
+def _proportionCaraCat(caracteristique:str,valeurCaracteristique,alias:str,annee:int=None,mois:int=None,categorie:str=None,repartitions:list=None):
+    """
+    Docstring for _proportionCaraCat
+    Renvoie la proportion de paquets d'une catégorie qui correspondent à cette caractéristique
+
+    :param caracteristique: La colonne du DatFrame concernée
+    :type caracteristique: str
+    :param valeurCaracteristique: La valeur concernée pour déterminer son pourcentage
+    :param alias: Description
+    :type alias: str
+    :param annee: Description
+    :type annee: int
+    :param mois: Description
+    :type mois: int
+    :param categorie: Description
+    :type categorie: str
+    :param repartitions: Description
+    :type repartitions: list
+    """
+    df=Choose_Open(annee,mois,(categorie,))
     nombre=len(df[df[caracteristique]==valeurCaracteristique])
     tot=len(df)
     taux=nombre/tot 
@@ -126,17 +125,30 @@ def RepartitionCaracteristiqueParCategorie(caracteristique:str,alias:str,annee:i
     for valeurCaracteristique in GetListValues(caracteristique,annee,mois):
         repartitions=[]
         #{nomImage:cheminImage}
-        plot_file=os.path.join(plot_dir,f"Repartition_{alias.replace("/","-")}_Categories_{str(valeurCaracteristique).replace("/","-")}.webp")
+        plot_file=os.path.join(plot_dir,f"Proportion_Paquets_{alias.replace("/","-")}={str(valeurCaracteristique).replace("/","-")}.webp")
         [_proportionCaraCat(caracteristique,valeurCaracteristique,alias,annee,mois,categorie,repartitions) for categorie in categories] #plots
+        df=pd.DataFrame(repartitions).set_index("categorie")
+        df.plot(kind='bar',legend=False)
+        plt.ylabel("Proportion")
+        plt.xlabel(alias)
+        plt.title(f"Proportion de Paquets {caracteristique}={valeurCaracteristique} par categorie")
+        plt.ylim(0, 1)
+        plt.tight_layout()
+        plt.savefig(plot_file)
+        plot_files[f"Proportion_{caracteristique}={valeurCaracteristique}"]=plot_file
+        plt.close()
+        repartitions=[]
+        plot_file=os.path.join(plot_dir,f"Repartition_Type_Paquets_{alias.replace("/","-")}={str(valeurCaracteristique).replace("/","-")}.webp")
+        [_RepartitionCaraCat(caracteristique,valeurCaracteristique,alias,annee,mois,categorie,repartitions) for categorie in categories] #plots
         df=pd.DataFrame(repartitions).set_index("categorie")
         df.plot(kind='bar',legend=False)
         plt.ylabel("Taux")
         plt.xlabel(alias)
-        plt.title(f"Proportion {caracteristique}={valeurCaracteristique} par categorie")
+        plt.title(f"Repartition par Type de paquets dont {caracteristique}={valeurCaracteristique}")
         plt.ylim(0, 1)
         plt.tight_layout()
         plt.savefig(plot_file)
-        plot_files[f"{caracteristique}={valeurCaracteristique}"]=plot_file
+        plot_files[f"Repartition_{caracteristique}={valeurCaracteristique}"]=plot_file
         plt.close()
     return plot_files
         
@@ -182,7 +194,10 @@ def RepartitionCaracteristiqueGlobale(caracteristique:str,alias:str,annee:int=No
 def plotHistogramGlobal(caracteristique:str,alias:str,annee:int=None,mois:int=None):
     plot_file=os.path.join(plot_dir,f"Histogramme_{alias}_Global.webp")
     df=Choose_Open(annee,mois)
-    df.hist(column=caracteristique,legend=True)
+    df.hist(column=caracteristique,legend=True,
+            density=True,
+            bins="auto", #densité de proba en histogramme avec un découpage intelligent
+            )
     nom=f"Histogramme {alias} global"
     plt.ylabel("nombre d'occurrences")
     plt.title(nom)
@@ -196,6 +211,8 @@ def plotHistogrammeParType(caracteristique:str,alias:str,annee:int|None=None,moi
     df=Choose_Open(annee,mois)
     df.hist(column=caracteristique,legend=True,by="Type",
             figsize=(16, 8),      # Plus large et plus haut
+            density=True,
+            bins="auto", #densité de proba en histogramme avec un découpage intelligent
             layout=(2, 4),        # 2 lignes, 4 colonnes = 8 subplots
             sharex=True
             )

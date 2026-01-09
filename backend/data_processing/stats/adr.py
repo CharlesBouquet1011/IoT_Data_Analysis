@@ -19,7 +19,7 @@ def _proportion_ADR(repartitions:list,annee:int|None=None,mois:int|None=None,cat
     :param categorie: Description
     """
     if categorie is not None:
-        df=Choose_Open(annee,mois,[categorie])
+        df=Choose_Open(annee,mois,(categorie,))
     else:
         df=Choose_Open(annee,mois)
     taux=df["adr"].mean() #déjà entre 0 et 1 (true/false) donc ça fonctionnera
@@ -41,6 +41,8 @@ def Repartition_ADR_Cat(annee:int|None=None,mois:int|None=None)->dict:
         nom+= " "+ str(annee)
     if mois is not None:
         nom+=" "+ str(mois)
+    plt.title(f"Proportion de Paquets avec adr par type")
+    plt.xlabel("Type")
     plt.ylabel(nom)
     plt.ylim(0, 1)
     plt.tight_layout()

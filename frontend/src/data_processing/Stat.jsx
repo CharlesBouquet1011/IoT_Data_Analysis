@@ -20,8 +20,10 @@ export function Statistiques(){
     const [choosedColumns,setChoosedColumns]=useState([]) //on passera sur l'erreur de conjugaison, le code fonctionne
     const [images,setImages]=useState({})
     const [erreur,setErreur]=useState("")
+    const [isLoading,setIsLoading]=useState(false)
     async function processData(){
         setErreur("")
+        setIsLoading(true)
         if (choosedColumns.length===0){
         setErreur("Veuillez indiquer les colonnes que vous souhaiter traiter")
         return ;
@@ -38,8 +40,7 @@ export function Statistiques(){
             columnList:choosedColumns
         })
         })
-        console.log("Response status:", response.status)
-        console.log("Response ok:", response.ok)
+        setIsLoading(false)
         if (!response.ok){
             const errData = await response.json().catch(() => ({}))
             console.log("Erreur response:", errData)
@@ -63,6 +64,11 @@ export function Statistiques(){
         {erreur && (
             <p className="text-red-600 font-semibold bg-red-50 border border-red-200 rounded-lg px-4 py-2 mt-4">
             {erreur}
+            </p>
+        )}
+        {isLoading && (
+            <p className="text-gray-700 font-medium bg-gray-100 border border-gray-200 rounded-lg px-4 py-2 mt-2">
+                Chargement...
             </p>
         )}
         {choosedColumns.length !== 0 && (

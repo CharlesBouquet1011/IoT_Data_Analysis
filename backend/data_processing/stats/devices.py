@@ -25,16 +25,16 @@ from numpy import ndarray
 categories=["Confirmed Data Up","Confirmed Data Down","Join Accept","Join Request","Proprietary","RFU","Unconfirmed Data Up","Unconfirmed Data Down"]
 
 def nombreDevices(annee:int=None,mois:int=None)->int:
-    df=Choose_Open(annee,mois, ["Join Request"])
+    df=Choose_Open(annee,mois, ("Join Request",))
     nombre=df["Dev_EUI"].nunique(dropna=True)
     return nombre
 def Devices(annee:int=None,mois:int=None)->ndarray:
-    df=Choose_Open(annee,mois, ["Join Request"])
+    df=Choose_Open(annee,mois, ("Join Request",))
     devices=df["Dev_EUI"].unique()
     return devices
 
 def trackDevices(annee:int=None,mois:int=None,categories:list=None):
-    df=Choose_Open(annee,mois,categories)
+    df=Choose_Open(annee,mois,tuple(categories))
     #Problèmes: 
     # - certains Dev_EUI sont== "" (pas renseignés) (problème pour dénombrer les devices également)
     # - Je n'ai aucun paquet où j'ai à la fois le Dev_EUI et le Dev_Addr pour faire le mapping des deux, ensemble
