@@ -39,7 +39,7 @@ Ouvre_Json_Categorie_Annee:
 import pandas as pd
 import os
 from cachetools import TTLCache, cached
-cache = TTLCache(maxsize=100, ttl=60) #TTL de 60 secondes, max 100 éléments mémorisés cache nécessaire pour accélérer les algos
+cache = TTLCache(maxsize=100, ttl=120) #TTL de 120 secondes, max 100 éléments mémorisés cache nécessaire pour accélérer les algos
 #peu intéressant d'optimiser comme c'est surtout des essais de différentes méthodes
 
 def open_processed_df(file:str)->pd.DataFrame:
@@ -98,8 +98,17 @@ def Ouvre_Json_Annee(annee:int)->pd.DataFrame:
     path=os.path.join(script_dir,"Data",str(annee))
     return Ouvre_Json_Util(path)
     
+def Ouvre_Json_Mois_Toutes_Annees(mois:int)->pd.DataFrame:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    root=os.path.join(script_dir,"Data")
+    temp=[Ouvre_Json_Mois(annee,mois) for annee in os.listdir(root)]
+    return pd.concat(temp,axis=0,join="outer")
 
-
+def Ouvre_Json_Cat_Mois_Toutes_Annees(mois:int,categorie:str):
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    root=os.path.join(script_dir,"Data")
+    temp=[Ouvre_Json_Mois_Categorie(annee,mois,categorie) for annee in os.listdir(root)]
+    return pd.concat(temp,axis=0,join="outer")
 def Ouvre_Json_Mois(annee:int,mois:int)->pd.DataFrame:
     """
     Docstring for Ouvre_Json_Mois
@@ -232,7 +241,11 @@ def Choose_Open(year:int=None,month:int=None,categories:tuple=None)->pd.DataFram
         elif (not year and not month and categories):
             temp=[Ouvre_Tous_Json_Cat(cat) for cat in categories]
             return pd.concat(temp,axis=0,join="outer")
-            
+        elif (not year and month and categories):
+            temp=[Ouvre_Json_Cat_Mois_Toutes_Annees(month,categorie) for categorie in categories]
+            return pd.concat(temp,axis=0,join="outer")
+        elif (not year and month and not categories):
+            return Ouvre_Json_Mois_Toutes_Annees(month)
         #normalement tous les cas possibles sont gérés, je ne peux pas avoir month sans avoir year
     except FileNotFoundError:
         print("fichier non trouvé")
