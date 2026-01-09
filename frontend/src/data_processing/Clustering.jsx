@@ -16,8 +16,8 @@ import { useState } from "react"
 import { useChoosedData } from "../menu/Menu"
 
 export function Clustering() {
-  const { catList, mois, annee } = useChoosedData()
-  console.log("useChoosedData:", { catList, mois, annee })
+  const { catList, month, year } = useChoosedData()
+  console.log("useChoosedData:", { catList, month, year })
   const [selectedMetrics, setSelectedMetrics] = useState([])
   const [nMetrics, setNMetrics] = useState(1)
   const [images, setImages] = useState({})
@@ -64,8 +64,8 @@ export function Clustering() {
     // }
 
     const requestData = {
-      year: annee,
-      month: mois,
+      year: year,
+      month: month,
       data_types: catList,
       n_metrics: nMetrics,
       metrics: selectedMetrics.slice(0, nMetrics)

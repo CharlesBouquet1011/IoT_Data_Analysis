@@ -71,10 +71,6 @@ export function ChooseData(){
     const [year,setYear]=useState(null)
     var [mois,annee]=[null,null]
     const [traitement,setTraitement]=useState(0)
-    useEffect(()=>{
-        if (month) mois=month.getMonth()+1
-        if (year) annee=year.getFullYear()
-    },[month,year])
     return(<>
     <h4>
         Remplissez uniquement les champs dont vous avez besoin pour restreindre la recherche
