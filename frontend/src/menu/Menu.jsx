@@ -69,8 +69,13 @@ export function ChooseData(){
     const [catList,setCatList]=useState([])
     const [month,setMonth]=useState(null)
     const [year,setYear]=useState(null)
-    var [mois,annee]=[null,null]
+    // var [mois,annee]=[null,null]
     const [traitement,setTraitement]=useState(0)
+
+    // À vérifier et enlever si besoin
+    const mois = month ? month.getMonth() + 1 : null
+    const annee = year ? year.getFullYear() : null
+
     return(<>
     <h4>
         Remplissez uniquement les champs dont vous avez besoin pour restreindre la recherche
