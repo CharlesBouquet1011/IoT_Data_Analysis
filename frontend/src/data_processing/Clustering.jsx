@@ -12,12 +12,214 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export default function Clustering() {
+import { useState } from "react"
+import { useChoosedData } from "../menu/Menu"
+
+export function Clustering() {
+  const { catList, mois, annee } = useChoosedData()
+  console.log("useChoosedData:", { catList, mois, annee })
+  const [selectedMetrics, setSelectedMetrics] = useState([])
+  const [images, setImages] = useState({})
+  const [erreur, setErreur] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  // Calculer automatiquement le nombre de métriques (limité à 3 max)
+  const nMetrics = Math.min(selectedMetrics.length, 3)
+
+  // Liste des métriques disponibles pour le clustering, celles qui sont des valeurs numériques
+  const availableMetrics = [
+    "Airtime",
+    "BitRate",
+    "rssi",
+    "lsnr",
+    "size",
+    "freq",
+    "SF",
+    "Bandwidth"
+  ]
+
+  async function processClustering() {
+    setErreur("")
+    setLoading(true)
+    
+    // if (selectedMetrics.length === 0) {
+    //   setErreur("Veuillez sélectionner au moins une métrique")
+    //   setLoading(false)
+    //   return
+    // }
+
+    // if (selectedMetrics.length < nMetrics) {
+    //   setErreur(`Veuillez sélectionner au moins ${nMetrics} métrique(s)`)
+    //   setLoading(false)
+    //   return
+    // }
+
+    // if (!catList || catList.length === 0) {
+    //   setErreur("Veuillez sélectionner au moins un type de données")
+    //   setLoading(false)
+    //   return
+    // }
+    // if (!selectedYear || !selectedMonth) {
+    //   setErreur("Veuillez sélectionner une année et un mois dans le menu principal")
+    //   setLoading(false)
+    //   return
+    // }
+
+    const requestData = {
+      year: annee,
+      month: mois,
+      data_types: catList,
+      n_metrics: nMetrics,
+      metrics: selectedMetrics.slice(0, nMetrics)
+    }
+
+    console.log("Données envoyées:", requestData)
+
+    try {
+      const response = await fetch("http://localhost:8000/api/clustering", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(requestData)
+      })
+
+      console.log("Response status:", response.status)
+      console.log("Response ok:", response.ok)
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}))
+        console.log("Erreur response:", errData)
+        setErreur(errData.detail || errData.error || `Erreur ${response.status}`)
+        setImages({})
+      } else {
+        console.log("Clustering réussi")
+        setErreur("")
+        const data = await response.json()
+        setImages(data.images || {})
+      }
+    } catch (error) {
+      console.error("Erreur lors du clustering:", error)
+      setErreur("Erreur de communication avec le serveur")
+      setImages({})
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <div className="mt-6 p-4 bg-green-100 border border-green-300 rounded-lg">
-      <p className="text-green-700 text-center font-semibold">
-        Clustering component successfully loaded
-      </p>
+    <div className="space-y-6">
+      {/* Indicateur du type de graphique automatique */}
+      {selectedMetrics.length > 0 && (
+        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex items-center justify-center">
+            <div className="flex-shrink-0 justify-center">
+              <h4 className="text-lg font-semibold text-blue-800 justify-center">
+                {selectedMetrics.length === 1 && "1️⃣ Graphique 1D - Distribution simple"}
+                {selectedMetrics.length === 2 && "2️⃣ Graphique 2D - Nuage de points"}
+                {selectedMetrics.length === 3 && "3️⃣ Graphique 3D - Nuage de points 3D"}
+                {selectedMetrics.length > 3 && "⚠️ Trop de métriques sélectionnées"}
+              </h4>
+              <p className="text-sm text-blue-600">
+                {selectedMetrics.length <= 3
+                  ? `${selectedMetrics.length} métrique${selectedMetrics.length > 1 ? 's' : ''} sélectionnée${selectedMetrics.length > 1 ? 's' : ''}`
+                  : `Sélectionnez maximum 3 métriques (actuellement ${selectedMetrics.length})`}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <h4 className="text-lg font-semibold text-gray-800 mb-3">
+          Sélectionnez les métriques que vous souhaitez visualiser (1 à 3)
+        </h4>
+        <p className="text-xs text-gray-500 mb-3">
+          Le type de graphique s'adapte automatiquement au nombre de métriques sélectionnées
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          {availableMetrics.map((metric) => (
+            <label
+              key={metric}
+              className="flex items-center gap-2 text-gray-800 bg-white p-2 rounded shadow-sm hover:bg-gray-100 transition"
+            >
+              <input
+                type="checkbox"
+                checked={selectedMetrics.includes(metric)}
+                className="h-4 w-4 text-blue-600 border-gray-400 rounded focus:ring-blue-500"
+                onChange={() => {
+                  setSelectedMetrics((prev) =>
+                    prev.includes(metric)
+                      ? prev.filter((v) => v !== metric)
+                      : [...prev, metric]
+                  )
+                }}
+              />
+              <span className="truncate">{metric}</span>
+            </label>
+          ))}
+        </div>
+        {selectedMetrics.length > 0 && (
+          <div className="mt-3 space-y-1">
+            <p className="text-sm text-gray-600">
+              Sélectionnées ({selectedMetrics.length}) : {selectedMetrics.join(", ")}
+            </p>
+            {selectedMetrics.length > 3 && (
+              <p className="text-sm text-red-600 font-semibold bg-red-50 p-2 rounded">
+                ⚠️ Veuillez sélectionner au maximum 3 métriques ⚠️
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {erreur && (
+        <p className="text-red-600 font-semibold bg-red-50 border border-red-200 rounded-lg px-4 py-2">
+          {erreur}
+        </p>
+      )}
+
+      {selectedMetrics.length > 0 && selectedMetrics.length <= 3 && catList.length > 0 && (
+        <button
+          onClick={processClustering}
+          disabled={loading}
+          className={`w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition ${
+            loading ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+        >
+          {loading ? "En cours..." : `Générer le graphique ${nMetrics}D`}
+        </button>
+      )}
+
+      {Object.keys(images).length > 0 && (
+        <div className="mt-6 space-y-6">
+          {Object.entries(images).map(([dataType, imagePath]) => (
+            <div
+              key={dataType}
+              className="p-4 border border-gray-200 rounded-lg bg-gray-50"
+            >
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                {dataType}
+              </h3>
+              <div className="flex justify-center">
+                <a
+                  href={imagePath}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block"
+                >
+                  <img
+                    src={imagePath}
+                    alt={`Clustering - ${dataType}`}
+                    className="max-w-full h-auto rounded-md border border-gray-300 hover:shadow-lg transition"
+                  />
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

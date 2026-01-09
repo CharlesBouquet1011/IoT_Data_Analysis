@@ -8,9 +8,10 @@
 
 import os
 import json
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
 """
@@ -20,8 +21,8 @@ import numpy as np
 	- year (int): année (ex: 2023)
 	- month (int): mois (1-12) ou chaîne numérique (ex: 10)
 	- data_type (str): type de fichier (ex: 'Confirmed Data Up', 'Join Request', 'Proprietary', ...)
-	- n_metrics (int): 1 ou 2 (nombre de métriques à utiliser pour le tracé)
-	- metrics (List[str]): liste des noms d'attribut(s) à utiliser (ex: ['Airtime'] ou ['Airtime','BitRate'])
+	- n_metrics (int): 1, 2 ou 3 (nombre de métriques à utiliser pour le tracé)
+	- metrics (List[str]): liste des noms d'attribut(s) à utiliser (ex: ['Airtime'], ['Airtime','BitRate'] ou ['Airtime','BitRate','rssi'])
 	- show (bool): si True, appelle `plt.show()`
 	- save_path (str|None): chemin pour sauvegarder l'image PNG (si fourni)
 	- max_points (int|None): limiter le nombre de paquets tracés (pratique pour très gros fichiers)
@@ -37,7 +38,7 @@ def plot_clustering(year: int,
 					metrics: List[str],
 					show: bool = True,
 					save_path: Optional[str] = None,
-					max_points: Optional[int] = None) -> Tuple[plt.Figure, plt.Axes, Optional[str]]:
+					max_points: Optional[int] = None) -> Tuple[plt.Figure, Union[plt.Axes, Axes3D], Optional[str]]:
 
 	month_str = str(int(month))
 
@@ -92,8 +93,8 @@ def plot_clustering(year: int,
 		raise ValueError("Format invalide")
 
     # Validation des paramètres
-	if n_metrics not in (1, 2):
-		raise ValueError("n_metrics doit être 1 ou 2")
+	if n_metrics not in (1, 2, 3):
+		raise ValueError("n_metrics doit être 1, 2 ou 3")
 
 	if not isinstance(metrics, list) or len(metrics) < n_metrics:
 		raise ValueError(f"Fournir au moins {n_metrics} métriques valables")
@@ -101,6 +102,7 @@ def plot_clustering(year: int,
     # Extraction des valeurs des métriques
 	vals_x = []
 	vals_y = []
+	vals_z = []
 	count = 0
 	for e in entries:
 		if max_points and count >= max_points:
@@ -113,7 +115,7 @@ def plot_clustering(year: int,
 				xv = float(v)
 				vals_x.append(xv)
 				count += 1
-			else:
+			elif n_metrics == 2:
 				v1 = e.get(metrics[0], None)
 				v2 = e.get(metrics[1], None)
 				if v1 is None or v2 is None:
@@ -123,6 +125,19 @@ def plot_clustering(year: int,
 				vals_x.append(xv)
 				vals_y.append(yv)
 				count += 1
+			else:  # n_metrics == 3
+				v1 = e.get(metrics[0], None)
+				v2 = e.get(metrics[1], None)
+				v3 = e.get(metrics[2], None)
+				if v1 is None or v2 is None or v3 is None:
+					continue
+				xv = float(v1)
+				yv = float(v2)
+				zv = float(v3)
+				vals_x.append(xv)
+				vals_y.append(yv)
+				vals_z.append(zv)
+				count += 1
 		except (TypeError, ValueError):
 			continue
 
@@ -130,7 +145,12 @@ def plot_clustering(year: int,
 	if len(vals_x) == 0:
 		raise ValueError("Il n'y a pas de données valides pour les métriques spécifiées.")
 
-	fig, ax = plt.subplots(figsize=(8, 5))
+	# Créer la figure avec projection 3D si nécessaire
+	if n_metrics == 3:
+		fig = plt.figure(figsize=(10, 8))
+		ax = fig.add_subplot(111, projection='3d')
+	else:
+		fig, ax = plt.subplots(figsize=(8, 5))
 
 	# Tracé adaptatif pour une seule métrique (1D)
 	if n_metrics == 1:
@@ -178,7 +198,7 @@ def plot_clustering(year: int,
 		ax.grid(axis='x', linestyle='--', alpha=0.4)
 
 	# Tracé adaptatif pour une deux métriques (2D)
-	else:
+	elif n_metrics == 2:
 		# Agréger les points identiques (même valeur sur les deux métriques)
 		pts = np.column_stack((vals_x, vals_y))
 		unique_pts, counts = np.unique(pts, axis=0, return_counts=True)
@@ -227,6 +247,44 @@ def plot_clustering(year: int,
 		sizes = np.clip(sizes, min_area, max_area)
 
 		ax.scatter(ux, yu, s=sizes, alpha=0.6)
+		ax.grid(True, linestyle='--', alpha=0.4)
+
+	# Tracé adaptatif pour trois métriques (3D)
+	elif n_metrics == 3:
+		# Agréger les points identiques (même valeur sur les trois métriques)
+		pts = np.column_stack((vals_x, vals_y, vals_z))
+		unique_pts, counts = np.unique(pts, axis=0, return_counts=True)
+		ux = unique_pts[:, 0]
+		uy = unique_pts[:, 1]
+		uz = unique_pts[:, 2]
+
+		ax.set_xlabel(metrics[0])
+		ax.set_ylabel(metrics[1])
+		ax.set_zlabel(metrics[2])
+		ax.set_title(f"{metrics[0]} vs {metrics[1]} vs {metrics[2]} - {data_type} {month_str}/{year}")
+
+		x_min, x_max = float(np.min(ux)), float(np.max(ux))
+		y_min, y_max = float(np.min(uy)), float(np.max(uy))
+		z_min, z_max = float(np.min(uz)), float(np.max(uz))
+		rx_range = x_max - x_min if x_max != x_min else 1.0
+		ry_range = y_max - y_min if y_max != y_min else 1.0
+		rz_range = z_max - z_min if z_max != z_min else 1.0
+		x_pad = 0.02 * rx_range
+		y_pad = 0.02 * ry_range
+		z_pad = 0.02 * rz_range
+		ax.set_xlim(x_min - x_pad, x_max + x_pad)
+		ax.set_ylim(y_min - y_pad, y_max + y_pad)
+		ax.set_zlim(z_min - z_pad, z_max + z_pad)
+
+		# Calcul des tailles de points basé sur les comptes
+		raw = counts.astype(float)
+		if raw.max() > 0:
+			sizes = (raw / raw.max()) * 100 + 20  # Taille entre 20 et 120
+		else:
+			sizes = np.full_like(raw, fill_value=50, dtype=float)
+
+		# Tracer les points 3D
+		ax.scatter(ux, uy, uz, s=sizes, alpha=0.6, c=uz, cmap='viridis')
 		ax.grid(True, linestyle='--', alpha=0.4)
 
 	fig.tight_layout()
@@ -286,8 +344,8 @@ if __name__ == '__main__':
 	parser.add_argument('month', type=int, help='Mois des données (1-12)')
 	parser.add_argument('data_type', type=str, help='Type de données (ex: "Confirmed Data Up")')
 	# Arguments optionnels (doivent être spécifiés avec leur préfixe)
-	parser.add_argument('--metrics', '-m', nargs='+', required=True, help='Métrique(s) à utiliser (ex: Airtime BitRate)')
-	parser.add_argument('--n-metrics', '-n', type=int, choices=[1, 2], help='Nombre de métriques (1 ou 2). Si non spécifié, automatiquement déduit de -m')
+	parser.add_argument('--metrics', '-m', nargs='+', required=True, help='Métrique(s) à utiliser (ex: Airtime BitRate rssi)')
+	parser.add_argument('--n-metrics', '-n', type=int, choices=[1, 2, 3], help='Nombre de métriques (1, 2 ou 3). Si non spécifié, automatiquement déduit de -m')
 	parser.add_argument('--save', '-s', type=str, default=None, help='Chemin pour sauvegarder le graphique image')
 	parser.add_argument('--max-points', type=int, default=None, help='Limiter le nombre de paquets tracés')
 	parser.add_argument('--no-show', action='store_true', help="Ne pas appeler plt.show(), uniquement l'export")

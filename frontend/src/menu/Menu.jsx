@@ -3,6 +3,7 @@ import { UploadForm } from '../preprocessing/DropFile'
 import DatePicker from "react-datepicker"
 import {AnalysisMenu} from "../preprocessing/AnalysisMenu"
 import { Statistiques } from '../data_processing/Stat'
+import { Clustering } from '../data_processing/Clustering'
 const DataContext = createContext();
 
 export function MenuPrincipal(){
@@ -68,12 +69,13 @@ export function ChooseData(){
     const [catList,setCatList]=useState([])
     const [month,setMonth]=useState(null)
     const [year,setYear]=useState(null)
-    var [mois,annee]=[null,null]
+    // var [mois,annee]=[null,null]
     const [traitement,setTraitement]=useState(0)
-    useEffect(()=>{
-        if (month) mois=month.getMonth()+1
-        if (year) annee=year.getFullYear()
-    },[month,year])
+
+    // À vérifier et enlever si besoin
+    const mois = month ? month.getMonth() + 1 : null
+    const annee = year ? year.getFullYear() : null
+
     return(<>
     <h4>
         Remplissez uniquement les champs dont vous avez besoin pour restreindre la recherche
@@ -136,9 +138,7 @@ export function ChooseData(){
                 </>
             )}
             {traitement===3 && (
-                <>
-                Code affichage clustering ici
-                </>
+                <Clustering />
             )}
             {
                 traitement===4 && (
