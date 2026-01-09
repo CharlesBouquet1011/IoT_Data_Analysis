@@ -44,10 +44,10 @@ async def process_clustering(data: ClusteringRequest):
             detail="Mois invalide (doit être entre 1 et 12)"
         )
 
-    if data.n_metrics not in (1, 2):
+    if data.n_metrics not in (1, 2, 3):
         raise HTTPException(
             status_code=400,
-            detail="n_metrics doit être 1 ou 2"
+            detail="n_metrics doit être 1, 2 ou 3"
         )
 
     if len(data.metrics) < data.n_metrics:

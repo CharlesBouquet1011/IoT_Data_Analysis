@@ -111,9 +111,12 @@ export function Clustering() {
       {/* Sélection du nombre de métriques */}
       <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
         <h4 className="text-lg font-semibold text-gray-800 mb-3">
-          Nombre de métriques pour le clustering
+          Nombre de métriques pour le tracé
         </h4>
-        <div className="flex gap-4">
+        <p className="text-sm text-gray-600 mb-3">
+          Choisissez la représentation souhaitée
+        </p>
+        <div className="flex gap-4 justify-center">
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="radio"
@@ -123,7 +126,7 @@ export function Clustering() {
               onChange={() => setNMetrics(1)}
               className="form-radio text-blue-600"
             />
-            <span className="text-gray-800">1D (une métrique)</span>
+            <span className="text-gray-800">1D</span>
           </label>
           <label className="flex items-center gap-2 cursor-pointer">
             <input
@@ -134,15 +137,25 @@ export function Clustering() {
               onChange={() => setNMetrics(2)}
               className="form-radio text-blue-600"
             />
-            <span className="text-gray-800">2D (deux métriques)</span>
+            <span className="text-gray-800">2D</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="nMetrics"
+              value={3}
+              checked={nMetrics === 3}
+              onChange={() => setNMetrics(3)}
+              className="form-radio text-blue-600"
+            />
+            <span className="text-gray-800">3D</span>
           </label>
         </div>
       </div>
 
-      {/* Sélection des métriques */}
       <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
         <h4 className="text-lg font-semibold text-gray-800 mb-3">
-          Sélectionnez {nMetrics === 1 ? "la métrique" : "les métriques"} à visualiser
+          Sélectionnez {nMetrics === 1 ? "la métrique" : nMetrics === 2 ? "les 2 métriques" : "les 3 métriques"} à visualiser
         </h4>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {availableMetrics.map((metric) => (
@@ -167,20 +180,30 @@ export function Clustering() {
           ))}
         </div>
         {selectedMetrics.length > 0 && (
-          <p className="mt-2 text-sm text-gray-600">
-            Sélectionnées : {selectedMetrics.join(", ")}
-          </p>
+          <div className="mt-3 space-y-1">
+            <p className="text-sm text-gray-600">
+              Sélectionnées ({selectedMetrics.length}/{nMetrics}) : {selectedMetrics.slice(0, nMetrics).join(", ")}
+            </p>
+            {selectedMetrics.length > nMetrics && (
+              <p className="text-xs text-red-600">
+                ⚠️ Veuillez retirer des métriques pour n'en garder que {nMetrics}
+              </p>
+            )}
+            {selectedMetrics.length < nMetrics && (
+              <p className="text-xs text-red-600">
+                ⚠️ Veuillez sélectionner au moins {nMetrics} métrique(s)
+              </p>
+            )}
+          </div>
         )}
       </div>
 
-      {/* Affichage des erreurs */}
       {erreur && (
         <p className="text-red-600 font-semibold bg-red-50 border border-red-200 rounded-lg px-4 py-2">
           {erreur}
         </p>
       )}
 
-      {/* Bouton de traitement */}
       {selectedMetrics.length >= nMetrics && catList.length > 0 && (
         <button
           onClick={processClustering}
@@ -193,7 +216,6 @@ export function Clustering() {
         </button>
       )}
 
-      {/* Affichage des résultats */}
       {Object.keys(images).length > 0 && (
         <div className="mt-6 space-y-6">
           {Object.entries(images).map(([dataType, imagePath]) => (
