@@ -19,10 +19,12 @@ export function Clustering() {
   const { catList, mois, annee } = useChoosedData()
   console.log("useChoosedData:", { catList, mois, annee })
   const [selectedMetrics, setSelectedMetrics] = useState([])
-  const [nMetrics, setNMetrics] = useState(1)
   const [images, setImages] = useState({})
   const [erreur, setErreur] = useState("")
   const [loading, setLoading] = useState(false)
+
+  // Calculer automatiquement le nombre de métriques (limité à 3 max)
+  const nMetrics = Math.min(selectedMetrics.length, 3)
 
   // Liste des métriques disponibles pour le clustering, celles qui sont des valeurs numériques
   const availableMetrics = [
@@ -108,55 +110,34 @@ export function Clustering() {
 
   return (
     <div className="space-y-6">
-      {/* Sélection du nombre de métriques */}
-      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-        <h4 className="text-lg font-semibold text-gray-800 mb-3">
-          Nombre de métriques pour le tracé
-        </h4>
-        <p className="text-sm text-gray-600 mb-3">
-          Choisissez la représentation souhaitée
-        </p>
-        <div className="flex gap-4 justify-center">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="radio"
-              name="nMetrics"
-              value={1}
-              checked={nMetrics === 1}
-              onChange={() => setNMetrics(1)}
-              className="form-radio text-blue-600"
-            />
-            <span className="text-gray-800">1D</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="radio"
-              name="nMetrics"
-              value={2}
-              checked={nMetrics === 2}
-              onChange={() => setNMetrics(2)}
-              className="form-radio text-blue-600"
-            />
-            <span className="text-gray-800">2D</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="radio"
-              name="nMetrics"
-              value={3}
-              checked={nMetrics === 3}
-              onChange={() => setNMetrics(3)}
-              className="form-radio text-blue-600"
-            />
-            <span className="text-gray-800">3D</span>
-          </label>
+      {/* Indicateur du type de graphique automatique */}
+      {selectedMetrics.length > 0 && (
+        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex items-center justify-center">
+            <div className="flex-shrink-0 justify-center">
+              <h4 className="text-lg font-semibold text-blue-800 justify-center">
+                {selectedMetrics.length === 1 && "1️⃣ Graphique 1D - Distribution simple"}
+                {selectedMetrics.length === 2 && "2️⃣ Graphique 2D - Nuage de points"}
+                {selectedMetrics.length === 3 && "3️⃣ Graphique 3D - Nuage de points 3D"}
+                {selectedMetrics.length > 3 && "⚠️ Trop de métriques sélectionnées"}
+              </h4>
+              <p className="text-sm text-blue-600">
+                {selectedMetrics.length <= 3
+                  ? `${selectedMetrics.length} métrique${selectedMetrics.length > 1 ? 's' : ''} sélectionnée${selectedMetrics.length > 1 ? 's' : ''}`
+                  : `Sélectionnez maximum 3 métriques (actuellement ${selectedMetrics.length})`}
+              </p>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
         <h4 className="text-lg font-semibold text-gray-800 mb-3">
-          Sélectionnez {nMetrics === 1 ? "la métrique" : nMetrics === 2 ? "les 2 métriques" : "les 3 métriques"} à visualiser
+          Sélectionnez les métriques que vous souhaitez visualiser (1 à 3)
         </h4>
+        <p className="text-xs text-gray-500 mb-3">
+          Le type de graphique s'adapte automatiquement au nombre de métriques sélectionnées
+        </p>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {availableMetrics.map((metric) => (
             <label
@@ -182,16 +163,11 @@ export function Clustering() {
         {selectedMetrics.length > 0 && (
           <div className="mt-3 space-y-1">
             <p className="text-sm text-gray-600">
-              Sélectionnées ({selectedMetrics.length}/{nMetrics}) : {selectedMetrics.slice(0, nMetrics).join(", ")}
+              Sélectionnées ({selectedMetrics.length}) : {selectedMetrics.join(", ")}
             </p>
-            {selectedMetrics.length > nMetrics && (
-              <p className="text-xs text-red-600">
-                ⚠️ Veuillez retirer des métriques pour n'en garder que {nMetrics}
-              </p>
-            )}
-            {selectedMetrics.length < nMetrics && (
-              <p className="text-xs text-red-600">
-                ⚠️ Veuillez sélectionner au moins {nMetrics} métrique(s)
+            {selectedMetrics.length > 3 && (
+              <p className="text-sm text-red-600 font-semibold bg-red-50 p-2 rounded">
+                ⚠️ Veuillez sélectionner au maximum 3 métriques ⚠️
               </p>
             )}
           </div>
@@ -204,7 +180,7 @@ export function Clustering() {
         </p>
       )}
 
-      {selectedMetrics.length >= nMetrics && catList.length > 0 && (
+      {selectedMetrics.length > 0 && selectedMetrics.length <= 3 && catList.length > 0 && (
         <button
           onClick={processClustering}
           disabled={loading}
@@ -212,7 +188,7 @@ export function Clustering() {
             loading ? "opacity-50 cursor-not-allowed" : ""
           }`}
         >
-          {loading ? "En cours..." : "Générer"}
+          {loading ? "En cours..." : `Générer le graphique ${nMetrics}D`}
         </button>
       )}
 
