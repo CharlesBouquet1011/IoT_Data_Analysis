@@ -3,6 +3,7 @@ import { UploadForm } from '../preprocessing/DropFile'
 import DatePicker from "react-datepicker"
 import {AnalysisMenu} from "../preprocessing/AnalysisMenu"
 import { Statistiques } from '../data_processing/Stat'
+import { Clustering } from '../data_processing/Clustering'
 const DataContext = createContext();
 
 export function MenuPrincipal(){
@@ -136,9 +137,7 @@ export function ChooseData(){
                 </>
             )}
             {traitement===3 && (
-                <>
-                Code affichage clustering ici
-                </>
+                <Clustering />
             )}
             {
                 traitement===4 && (

@@ -12,12 +12,216 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export default function Clustering() {
+import { useState } from "react"
+import { useChoosedData } from "../menu/Menu"
+
+export function Clustering() {
+  const { catList, mois, annee } = useChoosedData()
+  console.log("useChoosedData:", { catList, mois, annee })
+  const [selectedMetrics, setSelectedMetrics] = useState([])
+  const [nMetrics, setNMetrics] = useState(1)
+  const [images, setImages] = useState({})
+  const [erreur, setErreur] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  // Liste des métriques disponibles pour le clustering, celles qui sont des valeurs numériques
+  const availableMetrics = [
+    "Airtime",
+    "BitRate",
+    "rssi",
+    "lsnr",
+    "size",
+    "freq",
+    "SF",
+    "Bandwidth"
+  ]
+
+  async function processClustering() {
+    setErreur("")
+    setLoading(true)
+    
+    // if (selectedMetrics.length === 0) {
+    //   setErreur("Veuillez sélectionner au moins une métrique")
+    //   setLoading(false)
+    //   return
+    // }
+
+    // if (selectedMetrics.length < nMetrics) {
+    //   setErreur(`Veuillez sélectionner au moins ${nMetrics} métrique(s)`)
+    //   setLoading(false)
+    //   return
+    // }
+
+    // if (!catList || catList.length === 0) {
+    //   setErreur("Veuillez sélectionner au moins un type de données")
+    //   setLoading(false)
+    //   return
+    // }
+    // if (!selectedYear || !selectedMonth) {
+    //   setErreur("Veuillez sélectionner une année et un mois dans le menu principal")
+    //   setLoading(false)
+    //   return
+    // }
+
+    const requestData = {
+      year: annee,
+      month: mois,
+      data_types: catList,
+      n_metrics: nMetrics,
+      metrics: selectedMetrics.slice(0, nMetrics)
+    }
+
+    console.log("Données envoyées:", requestData)
+
+    try {
+      const response = await fetch("http://localhost:8000/api/clustering", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(requestData)
+      })
+
+      console.log("Response status:", response.status)
+      console.log("Response ok:", response.ok)
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}))
+        console.log("Erreur response:", errData)
+        setErreur(errData.detail || errData.error || `Erreur ${response.status}`)
+        setImages({})
+      } else {
+        console.log("Clustering réussi")
+        setErreur("")
+        const data = await response.json()
+        setImages(data.images || {})
+      }
+    } catch (error) {
+      console.error("Erreur lors du clustering:", error)
+      setErreur("Erreur de communication avec le serveur")
+      setImages({})
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <div className="mt-6 p-4 bg-green-100 border border-green-300 rounded-lg">
-      <p className="text-green-700 text-center font-semibold">
-        Clustering component successfully loaded
-      </p>
+    <div className="space-y-6">
+      {/* Sélection du nombre de métriques */}
+      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <h4 className="text-lg font-semibold text-gray-800 mb-3">
+          Nombre de métriques pour le clustering
+        </h4>
+        <div className="flex gap-4">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="nMetrics"
+              value={1}
+              checked={nMetrics === 1}
+              onChange={() => setNMetrics(1)}
+              className="form-radio text-blue-600"
+            />
+            <span className="text-gray-800">1D (une métrique)</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="nMetrics"
+              value={2}
+              checked={nMetrics === 2}
+              onChange={() => setNMetrics(2)}
+              className="form-radio text-blue-600"
+            />
+            <span className="text-gray-800">2D (deux métriques)</span>
+          </label>
+        </div>
+      </div>
+
+      {/* Sélection des métriques */}
+      <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+        <h4 className="text-lg font-semibold text-gray-800 mb-3">
+          Sélectionnez {nMetrics === 1 ? "la métrique" : "les métriques"} à visualiser
+        </h4>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          {availableMetrics.map((metric) => (
+            <label
+              key={metric}
+              className="flex items-center gap-2 text-gray-800 bg-white p-2 rounded shadow-sm hover:bg-gray-100 transition"
+            >
+              <input
+                type="checkbox"
+                checked={selectedMetrics.includes(metric)}
+                className="h-4 w-4 text-blue-600 border-gray-400 rounded focus:ring-blue-500"
+                onChange={() => {
+                  setSelectedMetrics((prev) =>
+                    prev.includes(metric)
+                      ? prev.filter((v) => v !== metric)
+                      : [...prev, metric]
+                  )
+                }}
+              />
+              <span className="truncate">{metric}</span>
+            </label>
+          ))}
+        </div>
+        {selectedMetrics.length > 0 && (
+          <p className="mt-2 text-sm text-gray-600">
+            Sélectionnées : {selectedMetrics.join(", ")}
+          </p>
+        )}
+      </div>
+
+      {/* Affichage des erreurs */}
+      {erreur && (
+        <p className="text-red-600 font-semibold bg-red-50 border border-red-200 rounded-lg px-4 py-2">
+          {erreur}
+        </p>
+      )}
+
+      {/* Bouton de traitement */}
+      {selectedMetrics.length >= nMetrics && catList.length > 0 && (
+        <button
+          onClick={processClustering}
+          disabled={loading}
+          className={`w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition ${
+            loading ? "opacity-50 cursor-not-allowed" : ""
+          }`}
+        >
+          {loading ? "En cours..." : "Générer"}
+        </button>
+      )}
+
+      {/* Affichage des résultats */}
+      {Object.keys(images).length > 0 && (
+        <div className="mt-6 space-y-6">
+          {Object.entries(images).map(([dataType, imagePath]) => (
+            <div
+              key={dataType}
+              className="p-4 border border-gray-200 rounded-lg bg-gray-50"
+            >
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">
+                {dataType}
+              </h3>
+              <div className="flex justify-center">
+                <a
+                  href={imagePath}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block"
+                >
+                  <img
+                    src={imagePath}
+                    alt={`Clustering - ${dataType}`}
+                    className="max-w-full h-auto rounded-md border border-gray-300 hover:shadow-lg transition"
+                  />
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
