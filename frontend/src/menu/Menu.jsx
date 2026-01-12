@@ -4,6 +4,7 @@ import DatePicker from "react-datepicker"
 import {AnalysisMenu} from "../preprocessing/AnalysisMenu"
 import { Statistiques } from '../data_processing/Stat'
 import { Clustering } from '../data_processing/Clustering'
+import { Regression } from '../data_processing/Regression'
 const DataContext = createContext();
 
 export function MenuPrincipal(){
@@ -128,9 +129,7 @@ export function ChooseData(){
             <AnalysisMenu onChoice={(choice)=>{ setTraitement(choice)}} />
 
             {traitement===1 &&(
-                <>
-                Code affichage régression ici
-                </>
+                <Regression />
             )}
             {traitement===2 &&(
                 <>
