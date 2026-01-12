@@ -1,3 +1,4 @@
+# from backend.preprocessing.useData import Choose_Open
 from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
@@ -57,6 +58,8 @@ def load_preprocessed_data(year, month, data_type):
 
     if filename is None:
         raise FileNotFoundError(f"Unknown data type: {data_type}")
+    
+    print(f"File used: {filename}")
 
     filepath = os.path.join(data_dir, filename)
     if not os.path.isfile(filepath):
@@ -78,13 +81,18 @@ def load_preprocessed_data(year, month, data_type):
     df = pd.DataFrame(entries)
     return df
 
-def plot_feature_importance(model, X_test, y_test, title):
+def plot_feature_importance(
+          model, 
+          X_test, 
+          y_test, 
+          title, 
+          file_name,
+          save_path):
     """
     Calculate feature importance using permutation method
     """
     print(f"\nCalculating importance for {title}")
     
-    # Use permutation importance but with fewer repeats for speed
     from sklearn.inspection import permutation_importance
     
     result = permutation_importance(model, X_test, y_test, n_repeats=5, random_state=42, n_jobs=-1)
@@ -92,7 +100,6 @@ def plot_feature_importance(model, X_test, y_test, title):
     feature_names = model.named_steps["prep"].get_feature_names_out()
     importances = result.importances_mean
     
-    # Aggregate by base feature
     importance_dict = {}
     for name, imp in zip(feature_names, importances):
         if '__' in name:
@@ -113,30 +120,35 @@ def plot_feature_importance(model, X_test, y_test, title):
     plt.title(title, fontsize=14, fontweight='bold')
     plt.grid(axis='x', alpha=0.3)
     plt.tight_layout()
-    plt.show()
+    
+    os.makedirs(save_path, exist_ok=True)
+    save_path_final = os.path.join(save_path, file_name)
 
-def run_signal_models(year: int, month: int, data_type: str):
+    if save_path_final:
+        plt.savefig(save_path_final, dpi=150)
+    
+    return save_path_final
+
+def run_signal_models(
+          year: int, 
+          month: int, 
+          data_type: str, 
+          save_path: str = None):
     """
     Trains and evaluates regression models for RSSI and SNR. 
     """
 
     # LOAD DATA
     df = load_preprocessed_data(year, month, data_type)
-    print(f"Total records: {len(df)}")
-    print(df.head())
 
     # TIME FEATURES
-    df["timestamp"] = pd.to_datetime(df["@timestamp"])
+    df["timestamp"] = pd.to_datetime(df["time"])
     df["hour"] = df["timestamp"].dt.hour
     df["weekday"] = df["timestamp"].dt.weekday
-
-    print(f"Unique devices: {df['Dev_Add'].nunique()}")
-    print(f"Unique gateways: {df['GW_EUI'].nunique()}")
 
     # PAIR COUNTS
     df_temp = df.dropna(subset=['rssi'])
     pair_counts = df_temp.groupby(['Dev_Add', 'GW_EUI']).size()
-    print(f"\nDevice-Gateway pairs: {len(pair_counts)}")
 
     # FEATURES
     num_features = ["Bandwidth", "SF", "size", "hour", "weekday"]
@@ -144,10 +156,6 @@ def run_signal_models(year: int, month: int, data_type: str):
 
     # RSSI MODEL
     df_rssi = df[df["rssi"].notna()].copy()
-
-    print(f"\nValid RSSI records: {len(df_rssi)}")
-    print(f"RSSI - Mean: {df_rssi['rssi'].mean():.2f}, Std: {df_rssi['rssi'].std():.2f}")
-    print(f"RSSI - Range: [{df_rssi['rssi'].min():.2f}, {df_rssi['rssi'].max():.2f}]")
 
     devs = df_rssi["Dev_Add"].unique()
     train_devs, test_devs = train_test_split(devs, test_size=0.2, random_state=42)
@@ -161,7 +169,14 @@ def run_signal_models(year: int, month: int, data_type: str):
     X_train = df_train[num_features + cat_features]
     X_test = df_test[num_features + cat_features]
     y_train = df_train["rssi"]
-    y_test = df_test["rssi"]
+    y_test_rssi = df_test["rssi"]
+
+    general_stats = {
+        "records": str(len(df)),
+        "unique_devices": str(df['Dev_Add'].nunique()),
+        "unique_gateways": str(df['GW_EUI'].nunique()),
+        "device-gw_pairs": str(len(pair_counts))
+    }
 
     preprocessor = ColumnTransformer(
         [
@@ -190,45 +205,29 @@ def run_signal_models(year: int, month: int, data_type: str):
     model_rssi.fit(X_train, y_train)
     y_pred_rssi = model_rssi.predict(X_test)
 
-    # ---- Baseline
-    baseline_pred = np.full_like(y_test, y_train.mean())
-    baseline_mae = mean_absolute_error(y_test, baseline_pred)
-
-    print(f"RSSI MAE: {mean_absolute_error(y_test, y_pred_rssi):.2f}")
-    print(f"RSSI R²: {r2_score(y_test, y_pred_rssi):.3f}")
-    print(f"Baseline MAE: {baseline_mae:.2f}")
-    print(f"Improvement over baseline: {(1 - mean_absolute_error(y_test, y_pred_rssi)/baseline_mae)*100:.1f}%")
-    print(f"MAE as % of std dev: {mean_absolute_error(y_test, y_pred_rssi)/y_train.std()*100:.1f}%")
-
     # RSSI ERROR ANALYSIS
     results_df = X_test.copy()
-    results_df["rssi_true"] = y_test.values
+    results_df["rssi_true"] = y_test_rssi.values
     results_df["rssi_pred"] = y_pred_rssi
-    results_df["error"] = np.abs(y_test.values - y_pred_rssi)
+    results_df["error"] = np.abs(y_test_rssi.values - y_pred_rssi)
 
-    print("\nRSSI Error by SF:")
-    print(results_df.groupby("SF")["error"].agg(["mean", "std", "count"]).round(2))
+    # ---- Baseline
+    baseline_pred = np.full_like(y_test_rssi, y_train.mean())
+    baseline_mae = mean_absolute_error(y_test_rssi, baseline_pred)
 
-    print("\nRSSI Error by Bandwidth:")
-    print(results_df.groupby("Bandwidth")["error"].agg(["mean", "std", "count"]).round(2))
-
-    print("\nTop 5 devices with highest RSSI error:")
-    device_errors = results_df.groupby("Dev_Add")["error"].agg(["mean", "count"])
-    print(device_errors[device_errors["count"] >= 10]
-          .sort_values("mean", ascending=False).head())
-    
-    print("\nGateway Performance Comparison:")
-    print(df_rssi.groupby('GW_EUI').agg({
-        'rssi': ['mean', 'std', 'count'],
-        'lsnr': ['mean', 'std']
-    }).round(2))
+    rssi_stats = {
+        "mean": f"{round(df_rssi['rssi'].mean(),2)}",
+        "std": f"{round(df_rssi['rssi'].std(),2)}",
+        "range": f"[{round(df_rssi['rssi'].min(),2)}, {round(df_rssi['rssi'].max(),2)}]",
+        "mae": f"{round(mean_absolute_error(y_test_rssi, y_pred_rssi),2)}",
+        "r2": f"{round(r2_score(y_test_rssi, y_pred_rssi),3)}",
+        "baseline_mae": f"{round(baseline_mae,2)}",
+        "improvement_pct": f"{round((1 - mean_absolute_error(y_test_rssi, y_pred_rssi)/baseline_mae)*100,1)} %",
+        "mae_as_pctage_of_std_dev": f"{round(mean_absolute_error(y_test_rssi, y_pred_rssi)/y_train.std()*100,1)} %"
+    }
 
     # SNR MODEL
     df_snr = df[df["lsnr"].notna()].copy()
-
-    print(f"\nValid SNR records: {len(df_snr)}")
-    print(f"SNR - Mean: {df_snr['lsnr'].mean():.2f}, Std: {df_snr['lsnr'].std():.2f}")
-    print(f"SNR - Range: [{df_snr['lsnr'].min():.2f}, {df_snr['lsnr'].max():.2f}]")
 
     devs = df_snr["Dev_Add"].unique()
     train_devs, test_devs = train_test_split(devs, test_size=0.2, random_state=42)
@@ -242,7 +241,7 @@ def run_signal_models(year: int, month: int, data_type: str):
     X_train = df_train[num_features + cat_features]
     X_test = df_test[num_features + cat_features]
     y_train = df_train["lsnr"]
-    y_test = df_test["lsnr"]
+    y_test_snr = df_test["lsnr"]
 
     model_snr = Pipeline([
         ("prep", preprocessor),
@@ -260,26 +259,52 @@ def run_signal_models(year: int, month: int, data_type: str):
     model_snr.fit(X_train, y_train)
     y_pred_snr = model_snr.predict(X_test)
 
-    baseline_pred = np.full_like(y_test, y_train.mean())
-    baseline_mae = mean_absolute_error(y_test, baseline_pred)
+    baseline_pred = np.full_like(y_test_snr, y_train.mean())
+    baseline_mae = mean_absolute_error(y_test_snr, baseline_pred)
 
-    print(f"SNR MAE: {mean_absolute_error(y_test, y_pred_snr):.2f}")
-    print(f"SNR R²: {r2_score(y_test, y_pred_snr):.3f}")
-    print(f"Baseline MAE: {baseline_mae:.2f}")
-    print(f"Improvement over baseline: {(1 - mean_absolute_error(y_test, y_pred_snr)/baseline_mae)*100:.1f}%")
-    print(f"MAE as % of std dev: {mean_absolute_error(y_test, y_pred_snr) / baseline_mae * 100:.1f}%")
+    snr_stats = {
+        "mean": f"{round(df_snr['lsnr'].mean(),2)}",
+        "std": f"{round(df_snr['lsnr'].std(),2)}",
+        "range": f"[{round(df_snr['lsnr'].min(),2)}, {round(df_snr['lsnr'].max(),2)}]",
+        "mae": f"{round(mean_absolute_error(y_test_snr, y_pred_snr),2)}",
+        "r2": f"{round(r2_score(y_test_snr, y_pred_snr),3)}",
+        "baseline_mae": f"{round(baseline_mae,2)}",
+        "improvement_pct": f"{round((1 - mean_absolute_error(y_test_snr, y_pred_snr)/baseline_mae)*100,1)} %",
+        "mae_as_pctage_of_std_dev": f"{round(mean_absolute_error(y_test_snr, y_pred_snr)/y_train.std()*100,1)} %"
+    }
 
     # FEATURE IMPORTANCE
     print("\nGenerating feature importance plots")
 
-    plot_feature_importance(model_rssi, X_test, y_test.values, "RSSI Model")
-    plot_feature_importance(model_snr, X_test, y_test.values, "SNR Model")
+    # Nettoie le nom du fichier pour qu'il soit valide
+    def _sanitize(s: str) -> str:
+        keep = []
+        for ch in s:
+            if ch.isalnum() or ch in ('-', '_'):
+                keep.append(ch)
+            elif ch.isspace():
+                keep.append('_')
+        return ''.join(keep)
+    
+    # Génère le nom de fichier par défaut
+    def _make_default_filename(title) -> str:
+        dt = _sanitize(data_type.replace(' ', '_'))
+        return f"{title}_{dt}_{year:04d}-{int(month):02d}.png"
+
+    # Default images folder: ../../Images
+    images_dir = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..', 'Images'))
+
+    rssi_plot_path = plot_feature_importance(model_rssi, X_test, y_test_rssi.values, "RSSI", _make_default_filename("feature_importance_rssi"), images_dir)
+    snr_plot_path = plot_feature_importance(model_snr, X_test, y_test_snr.values, "SNR", _make_default_filename("feature_importance_snr"), images_dir)
 
     # RESIDUAL PLOTS
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
     # RSSI residuals
-    axes[0].scatter(y_pred_rssi, y_test - y_pred_rssi, alpha=0.3, s=10)
+    residuals_rssi = y_test_rssi.values - y_pred_rssi
+    residuals_snr = y_test_snr.values - y_pred_snr
+
+    axes[0].scatter(y_pred_rssi, residuals_rssi, alpha=0.3, s=10)
     axes[0].axhline(0, color='red', linestyle='--', linewidth=2)
     axes[0].set_xlabel('Predicted RSSI', fontsize=12)
     axes[0].set_ylabel('Residuals', fontsize=12)
@@ -287,7 +312,7 @@ def run_signal_models(year: int, month: int, data_type: str):
     axes[0].grid(alpha=0.3)
 
     # SNR residuals
-    axes[1].scatter(y_pred_snr, y_test - y_pred_snr, alpha=0.3, s=10)
+    axes[1].scatter(y_pred_snr, residuals_snr, alpha=0.3, s=10)
     axes[1].axhline(0, color='red', linestyle='--', linewidth=2)
     axes[1].set_xlabel('Predicted SNR', fontsize=12)
     axes[1].set_ylabel('Residuals', fontsize=12)
@@ -295,7 +320,22 @@ def run_signal_models(year: int, month: int, data_type: str):
     axes[1].grid(alpha=0.3)
 
     plt.tight_layout()
-    plt.show()
+    residuals_path = os.path.join(images_dir, _make_default_filename("residual_plots"))
+    plt.savefig(residuals_path, dpi=150)
+    plt.close(fig)
+
+    return {
+        "images": {
+            "rssi_plot": rssi_plot_path,
+            "snr_plot": snr_plot_path,
+            "residual_plots": residuals_path
+        },
+        "stats": {
+            "general": general_stats,
+            "rssi": rssi_stats,
+            "snr": snr_stats
+        }
+    }
 
 if __name__ == "__main__":
     import argparse

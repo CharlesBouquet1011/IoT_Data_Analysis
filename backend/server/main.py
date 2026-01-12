@@ -20,11 +20,12 @@ from fastapi import FastAPI,UploadFile,File,HTTPException
 import os
 from server.models.preprocessing import PreprocessRequest
 from preprocessing import prepare_data
-from server.routes import stats, clustering
+from server.routes import stats, clustering, regression
 #Initialisation
 app = FastAPI()
 app.include_router(stats.router)
 app.include_router(clustering.router)
+app.include_router(regression.router)
 script_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir=os.path.dirname(script_dir)
 image_dir=os.path.join(parent_dir,"Images")
