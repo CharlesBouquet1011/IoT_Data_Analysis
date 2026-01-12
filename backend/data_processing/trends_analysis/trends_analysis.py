@@ -8,7 +8,7 @@ import os
 categories=["Confirmed Data Up","Confirmed Data Down","Join Accept","Join Request","Proprietary","RFU","Unconfirmed Data Up","Unconfirmed Data Down"]
 script_dir=os.path.dirname(os.path.abspath(__file__))
 backend_dir=os.path.dirname(os.path.dirname(script_dir))
-plot_dir=os.path.join(backend_dir,"Images","Stats")
+plot_dir=os.path.join(backend_dir,"Images","Trends")
 
 
 def plotTimeSerie(df:pd.DataFrame,freq:str="D",start:pd.Timestamp|None=None,end:pd.Timestamp|None=None):
@@ -28,6 +28,17 @@ def plotTimeSerie(df:pd.DataFrame,freq:str="D",start:pd.Timestamp|None=None,end:
         Copie=Copie[Copie.index>=start]
     if end is not None:
         Copie=Copie[Copie.index<=end]
+    if start is None:
+        start = df.index.min()
+    if end is None:
+        end = df.index.max()
+    if start is not None and start > df.index.max():
+        raise ValueError("start est après la dernière date disponible")
+
+    if end is not None and end < df.index.min():
+        raise ValueError("end est avant la première date disponible")
+    
+    print(Copie)
     timeSerie=Copie.resample(freq).size() #regroupe par intervalle de temps à partir de début et met en valeur le nombre de paquets qu'il y a eu
     plt.figure()
     timeSerie.plot(kind="line")
@@ -45,6 +56,6 @@ def wrapper(year:int=None,month:int=None,categories:tuple|None=None,start:pd.Tim
 
 if __name__=="__main__":
     frequences=["H","D","W","M","Y"]
-    start=pd.Timestamp("2023-12-01")
+    start=pd.Timestamp("2023-10-01")
     end = start + timedelta(weeks=1)
     wrapper(2023,12,None,start,end,"D")

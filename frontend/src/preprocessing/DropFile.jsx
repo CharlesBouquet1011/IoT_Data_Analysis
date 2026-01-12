@@ -100,9 +100,7 @@ export function UploadForm(){
 
 
 export function DateUploadForm({ setProcessed, processed }){
-  const [date,setDate]=useState(null)
-    
-
+  
   const [rollingInterval,setRollingInterval]=useState(0)
   const [rollingIntervalType,setRollingIntervalType]=useState("")
   const [attrList,setAttrList]=useState([])
@@ -126,7 +124,7 @@ const attributs=["Airtime","BitRate","rssi","lsnr"] //rajouter des attributs ici
   async function preprocessData() {
     console.log("confirmation")
     console.log("roll :",rollingInterval)
-    if (!rollingInterval || attrList.length===0 || !date || rollingIntervalType===""){
+    if (!rollingInterval || attrList.length===0 || rollingIntervalType===""){
       setErreur("Veuillez renseigner tous les champs")
       return ;
     }
@@ -137,8 +135,6 @@ const attributs=["Airtime","BitRate","rssi","lsnr"] //rajouter des attributs ici
         "Content-Type": "application/json"
       },
       body:JSON.stringify({
-        year:date.getFullYear(),
-        month:date.getMonth()+1,
         rollingIntervalType: rollingIntervalType,
         rollingInterval: rollingIntervalType === "nb" ? parseInt(rollingInterval, 10) : rollingInterval,
         attrList: attrList,
@@ -161,7 +157,7 @@ const attributs=["Airtime","BitRate","rssi","lsnr"] //rajouter des attributs ici
   return(
 
 <>
-  <h4 className="text-lg font-semibold mt-8 mb-4 text-gray-800">
+  {/* <h4 className="text-lg font-semibold mt-8 mb-4 text-gray-800">
     Indiquez à quel mois correspond votre donnée
   </h4>
   <DatePicker selected={date}
@@ -172,7 +168,7 @@ const attributs=["Airtime","BitRate","rssi","lsnr"] //rajouter des attributs ici
 className="w-full px-4 py-2 border border-gray-300 rounded-lg
              bg-white text-gray-800
              focus:outline-none focus:ring-2 focus:ring-blue-500"
-  />
+  /> */}
   <h4 className="text-lg font-semibold mt-8 mb-4 text-gray-800">
     Indiquez sur quelles caractéristiques vous voulez détecter les outliers 
   </h4>

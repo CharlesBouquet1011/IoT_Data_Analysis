@@ -125,24 +125,30 @@ def sub_df_by_column(df:pd.DataFrame,column:str)->dict:
     groupe=df.groupby(column)
     return {Cat:val for Cat, val in groupe}
 
-def prepare_data(year:int,month:int,rolling_interval,attrList:list,file):
+def split_df_by_month(df:pd.DataFrame):
+    dic={(year,month): sub for (year,month),sub in df.groupby([df.index.year,df.index.month])}
+    return dic
+
+def prepare_data(rolling_interval,attrList:list,file):
     """
     Crée des répertoires contenant les données rangées
     """
     #gte,lt=calcul_Gte_Lt(year,month)
     #file=download_data(gte,lt,year,month)
-    
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    os.makedirs(os.path.join(script_dir,"flattened",str(year)),exist_ok=True)
-    flat_output_path=os.path.join(script_dir,"flattened",str(year),str(month)+".json")
-    flatten_datas(file,flat_output_path)
-    file=flat_output_path
     df=open_df_flattened(file)
-    dfs=sub_df_by_column(df,"Type")
-    for Type,subDf in dfs.items():
-        os.makedirs(os.path.join(script_dir,"Data",str(year),str(month)),exist_ok=True)
-        outputFile=os.path.join(script_dir,"Data",str(year),str(month),Type+".json")
-        produce_dataset(subDf,True,True,True,rolling_interval,attrList,outputFile,Type)
+    for (year,month),monthlyDf in split_df_by_month(df).items():
+        
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        os.makedirs(os.path.join(script_dir,"flattened",str(year)),exist_ok=True)
+        flat_output_path=os.path.join(script_dir,"flattened",str(year),str(month)+".json")
+        flatten_datas(file,flat_output_path)
+        file=flat_output_path
+        
+        dfs=sub_df_by_column(df,"Type")
+        for Type,subDf in dfs.items():
+            os.makedirs(os.path.join(script_dir,"Data",str(year),str(month)),exist_ok=True)
+            outputFile=os.path.join(script_dir,"Data",str(year),str(month),Type+".json")
+            produce_dataset(subDf,True,True,True,rolling_interval,attrList,outputFile,Type)
 
 def open_df_flattened(fichier:str)->pd.DataFrame:
     """
@@ -165,6 +171,6 @@ if __name__=="__main__":
     #lancer le script EN TANT QUE MODULE, sinon ça ne fonctionnera pas
     script_dir = os.path.dirname(os.path.abspath(__file__))
     file=os.path.join(script_dir,"Raw","raw.json")
-    prepare_data(2023,12,30,["BitRate","rssi","lsnr"],file)
+    prepare_data(30,["BitRate","rssi","lsnr"],file)
 
     

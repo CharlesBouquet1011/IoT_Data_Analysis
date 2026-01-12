@@ -21,6 +21,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import os
 from numpy import ndarray
+import numpy as np
 categories=["Confirmed Data Up","Confirmed Data Down","Join Accept","Join Request","Proprietary","RFU","Unconfirmed Data Up","Unconfirmed Data Down"]
 script_dir=os.path.dirname(os.path.abspath(__file__))
 backend_dir=os.path.dirname(os.path.dirname(script_dir))
@@ -124,11 +125,16 @@ def RepartitionCaracteristiqueParCategorie(caracteristique:str,alias:str,annee:i
     plot_files={}
     for valeurCaracteristique in GetListValues(caracteristique,annee,mois):
         repartitions=[]
+        ul=set(["Confirmed Data Up","Join Request","Unconfirmed Data Up"])
+        dl=set(["Confirmed Data Down","Join Accept","Unconfirmed Data Down"])
         #{nomImage:cheminImage}
         plot_file=os.path.join(plot_dir,f"Proportion_Paquets_{alias.replace("/","-")}={str(valeurCaracteristique).replace("/","-")}.webp")
-        [_proportionCaraCat(caracteristique,valeurCaracteristique,alias,annee,mois,categorie,repartitions) for categorie in categories] #plots
+        [_proportionCaraCat(caracteristique,valeurCaracteristique,alias,annee,mois,categorie,repartitions) for categorie in categories] #plots 
         df=pd.DataFrame(repartitions).set_index("categorie")
-        df.plot(kind='bar',legend=False)
+        couleurs=["skyblue" if cat in ul else "salmon" if cat in dl else "grey" for cat in df.index.str.strip()]
+        plt.figure()
+        plt.bar(np.arange(len(df)), df[alias], color=couleurs)
+        plt.xticks(np.arange(len(df)), df.index, rotation=45, ha='right')
         plt.ylabel("Proportion")
         plt.xlabel(alias)
         plt.title(f"Proportion de Paquets {caracteristique}={valeurCaracteristique} par categorie")
@@ -141,7 +147,11 @@ def RepartitionCaracteristiqueParCategorie(caracteristique:str,alias:str,annee:i
         plot_file=os.path.join(plot_dir,f"Repartition_Type_Paquets_{alias.replace("/","-")}={str(valeurCaracteristique).replace("/","-")}.webp")
         [_RepartitionCaraCat(caracteristique,valeurCaracteristique,alias,annee,mois,categorie,repartitions) for categorie in categories] #plots
         df=pd.DataFrame(repartitions).set_index("categorie")
-        df.plot(kind='bar',legend=False)
+        couleurs=["skyblue" if cat in ul else "salmon" if cat in dl else "grey" for cat in df.index.str.strip()]
+        print(list(df.index),couleurs)
+        plt.figure()
+        plt.bar(np.arange(len(df)), df[alias], color=couleurs)
+        plt.xticks(np.arange(len(df)), df.index, rotation=45, ha='right')
         plt.ylabel("Taux")
         plt.xlabel(alias)
         plt.title(f"Repartition par Type de paquets dont {caracteristique}={valeurCaracteristique}")

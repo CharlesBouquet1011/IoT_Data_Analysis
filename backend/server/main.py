@@ -78,6 +78,6 @@ async def preprocessing(data:PreprocessRequest):
             )
     
     file=os.path.join(raw_data_dir,"raw.json")
-    prepare_data(data.year,data.month,data.rollingInterval,data.attrList,file)
+    prepare_data(data.rollingInterval,data.attrList,file)
     return {"status":"ok","message":"Prétraitement terminé"}
         
