@@ -51,6 +51,7 @@ export function Trends(){
             console.log("Traitement réussi")
             setErreur("")
             const data= await response.json()
+            console.log(data)
             setImages(data.images)
 
             
@@ -75,7 +76,7 @@ export function Trends(){
                 Chargement...
             </p>
         )}
-        {(chosenHopInterval!=="" && chosenFreq!="" && !chosenFreq) && (
+        {(chosenHopInterval!=="" && chosenFreq!="" && chosenHopValue) && (
             <button
             onClick={() => processData()}
             className="mt-4 w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition"
@@ -91,7 +92,7 @@ export function Trends(){
 }
 
 function ChooseParameters({setChosenHopInterval, setChosenHopValue, setChosenFreq}) {
-    //généré par IA, il est minuit là et c'est vraiment que faire un forms
+    //généré par IA, il est plus de minuit et c'est juste un forms pour envoyer des paramètres au backend
     const hopIntervalOptions = ["seconds", "minutes", "hours", "days", "weeks"];
     const freqOptions = [
         { value: "10s", label: "10 secondes" },
@@ -129,20 +130,20 @@ function ChooseParameters({setChosenHopInterval, setChosenHopValue, setChosenFre
                 Paramètres de l'analyse
             </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Hop Interval */}
-                <div>
+                <div className="flex flex-col">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                         Intervalle de saut
                     </label>
                     <select
                         value={localHopInterval}
                         onChange={(e) => setLocalHopInterval(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                        className="flex-1 px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                     >
-                        <option value="">Sélectionner...</option>
+                        <option value="" className="text-gray-500">Sélectionner...</option>
                         {hopIntervalOptions.map((option) => (
-                            <option key={option} value={option}>
+                            <option key={option} value={option} className="text-gray-900">
                                 {option}
                             </option>
                         ))}
@@ -150,7 +151,7 @@ function ChooseParameters({setChosenHopInterval, setChosenHopValue, setChosenFre
                 </div>
 
                 {/* Hop Value */}
-                <div>
+                <div className="flex flex-col">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                         Valeur de saut
                     </label>
@@ -160,23 +161,23 @@ function ChooseParameters({setChosenHopInterval, setChosenHopValue, setChosenFre
                         value={localHopValue}
                         onChange={(e) => setLocalHopValue(e.target.value)}
                         placeholder="Ex: 30"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                        className="flex-1 px-3 py-2 bg-white text-gray-900 placeholder-gray-400 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                     />
                 </div>
 
                 {/* Frequency */}
-                <div>
+                <div className="flex flex-col">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                         Fréquence d'échantillonnage
                     </label>
                     <select
                         value={localFreq}
                         onChange={(e) => setLocalFreq(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                        className="flex-1 px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                     >
-                        <option value="">Sélectionner...</option>
+                        <option value="" className="text-gray-500">Sélectionner...</option>
                         {freqOptions.map((option) => (
-                            <option key={option.value} value={option.value}>
+                            <option key={option.value} value={option.value} className="text-gray-900">
                                 {option.label}
                             </option>
                         ))}
@@ -184,8 +185,8 @@ function ChooseParameters({setChosenHopInterval, setChosenHopValue, setChosenFre
                 </div>
             </div>
 
-            {/* Info tooltip optionnel */}
-            <div className="mt-4 text-sm text-gray-600 bg-blue-50 border border-blue-200 rounded-lg p-3">
+            {/* Info tooltip */}
+            <div className="mt-4 text-sm text-gray-700 bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <span className="font-semibold">💡 Info :</span> L'intervalle de saut détermine 
                 la taille de la fenêtre glissante pour l'analyse des tendances.
             </div>
