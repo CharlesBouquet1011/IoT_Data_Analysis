@@ -1,1 +1,1 @@
-from trends_analysis import trends
+from .trends_analysis import trends

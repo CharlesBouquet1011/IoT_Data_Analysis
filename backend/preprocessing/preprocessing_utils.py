@@ -61,6 +61,7 @@ def produce_dataset(df:pd.DataFrame,verbose:bool,undefined_toggle:bool,outlier_t
         for attr in selected_attrs:
             if pd.api.types.is_numeric_dtype(df[attr]):
                 #duree peut être soit une durée en temps "7d" soit un nombre de points
+                print("durée :",duree)
                 q1=df[attr].rolling(duree).quantile(0.25) #premier quartile  (fenêtre glissante)
                 q3=df[attr].rolling(duree).quantile(0.75)#dernier quartile (fenêtre glissante)
                 IQRange=q3-q1   #écart interquartile
@@ -70,6 +71,7 @@ def produce_dataset(df:pd.DataFrame,verbose:bool,undefined_toggle:bool,outlier_t
     if verbose: print(f"Remaining packets after processing: {len(df)}") # VERBOSE sauvegarde du dataset
     df=addColAdr(df)
     df.drop("outlier",axis=1,inplace=True)
+    df.reset_index(inplace=True)
     df.to_json(fichier_sortie, orient="index", indent=2) #il faudra readJson avec orient="index"
     print("custom_dataset.json generated successfully.") # VERBOSE terminé !
     return df #au cas où
@@ -127,7 +129,7 @@ def sub_df_by_column(df:pd.DataFrame,column:str)->dict:
     return {Cat:val for Cat, val in groupe}
 
 def split_df_by_month(df:pd.DataFrame):
-    dic={(int(year),int(month)): sub for (year,month),sub in df.groupby([df["time"].dt.year,df["time"].dt.month])}
+    dic={(int(year),int(month)): sub for (year,month),sub in df.groupby([df.index.year,df.index.month])}
     return dic
 
 def prepare_data(rolling_interval,attrList:list,file):
@@ -163,6 +165,7 @@ def open_df_flattened(fichier:str)->pd.DataFrame:
 
     df= pd.read_json(fichier)
     df["time"]=pd.to_datetime(df["time"],errors="coerce",utc=True)
+    df.set_index("time",inplace=True)
     return df
 
 
