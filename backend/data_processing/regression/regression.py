@@ -1,4 +1,4 @@
-# from backend.preprocessing.useData import Choose_Open
+from preprocessing.useData import Choose_Open
 from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
@@ -13,73 +13,8 @@ import os
 import json
 
 """
-	Charge les données LoRaWAN pré-traitées par type de paquet, mois et année. 
     Construit des modèles de régression pour prédire le RSSI et le SNR, puis évalue, analyse et visualise leurs performances. 
 """
-
-def load_preprocessed_data(year, month, data_type):
-    month_str = str(int(month))
-
-    base_dir = os.path.join(os.path.dirname(__file__), "..", "..", "preprocessing", "Data")
-    base_dir = os.path.normpath(base_dir)
-    data_dir = os.path.join(base_dir, str(year), month_str)
-
-    if not os.path.isdir(data_dir):
-        raise FileNotFoundError(f"Directory does not exist: {data_dir}")
-
-    known_files = {
-        "confirmed data up": "Confirmed Data Up.json",
-        "confirmed data down": "Confirmed Data Down.json",
-        "join accept": "Join Accept.json",
-        "join request": "Join Request.json",
-        "proprietary": "Proprietary.json",
-        "rfu": "RFU.json",
-        "stat": "Stat.json",
-        "unconfirmed data up": "Unconfirmed Data Up.json",
-        "unconfirmed data down": "Unconfirmed Data Down.json"
-    }
-
-    key = data_type.strip().lower()
-    filename = known_files.get(key)
-
-    # Partial / fuzzy match
-    if filename is None:
-        for k, v in known_files.items():
-            if k in key or key in k:
-                filename = v
-                break
-
-    # Fallback: treat data_type as a filename
-    if filename is None:
-        maybe = data_type if data_type.lower().endswith(".json") else data_type + ".json"
-        candidate = os.path.join(data_dir, maybe)
-        if os.path.isfile(candidate):
-            filename = maybe
-
-    if filename is None:
-        raise FileNotFoundError(f"Unknown data type: {data_type}")
-    
-    print(f"File used: {filename}")
-
-    filepath = os.path.join(data_dir, filename)
-    if not os.path.isfile(filepath):
-        raise FileNotFoundError(f"File does not exist: {filepath}")
-
-    # Load JSON
-    with open(filepath, "r", encoding="utf-8") as f:
-        data = json.load(f)
-
-    # Normalize data format
-    if isinstance(data, dict):
-        entries = list(data.values())
-    elif isinstance(data, list):
-        entries = data
-    else:
-        raise ValueError("Invalid JSON format")
-
-    # Convert to DataFrame
-    df = pd.DataFrame(entries)
-    return df
 
 def plot_feature_importance(
           model, 
@@ -139,10 +74,10 @@ def run_signal_models(
     """
 
     # LOAD DATA
-    df = load_preprocessed_data(year, month, data_type)
+    df = Choose_Open(year, month, (data_type,))
 
     # TIME FEATURES
-    df["timestamp"] = pd.to_datetime(df["time"])
+    df["timestamp"] = pd.to_datetime(df.index)
     df["hour"] = df["timestamp"].dt.hour
     df["weekday"] = df["timestamp"].dt.weekday
 
@@ -292,7 +227,10 @@ def run_signal_models(
         return f"{title}_{dt}_{year:04d}-{int(month):02d}.png"
 
     # Default images folder: ../../Images
-    images_dir = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..', 'Images'))
+    if save_path:
+        images_dir = save_path
+    else:
+        images_dir = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..', 'Images'))
 
     rssi_plot_path = plot_feature_importance(model_rssi, X_test, y_test_rssi.values, "RSSI", _make_default_filename("feature_importance_rssi"), images_dir)
     snr_plot_path = plot_feature_importance(model_snr, X_test, y_test_snr.values, "SNR", _make_default_filename("feature_importance_snr"), images_dir)
