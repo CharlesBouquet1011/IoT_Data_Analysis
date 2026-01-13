@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from ...preprocessing.useData import Choose_Open
+from preprocessing.useData import Choose_Open
 import pandas as pd
 from datetime import timedelta
 import matplotlib
@@ -46,12 +46,20 @@ def plotTimeSerie(df:pd.DataFrame,freq:str="D",hop_interval:str="weeks",hop_valu
     
 
     nom_freq = {
-        "h": "heure",
-        "D": "jour",
-        "W": "semaine",
-        "M": "mois",
-        "Y": "annee"
-    }
+    "s": "seconde",      # Pour du debugging très fin
+    "10s": "10 secondes", # Monitoring temps réel
+    "30s": "30 secondes", # Monitoring temps réel
+    "min": "minute",      # Analyse fine du trafic
+    "5min": "5 minutes",  # Standard pour métriques IoT
+    "10min": "10 minutes",
+    "15min": "15 minutes", # Très courant (quart d'heure)
+    "30min": "30 minutes", # Demi-heure
+    "h": "heure",
+    "D": "jour",
+    "W": "semaine",
+    "ME": "mois",         # Month End (plus précis que "M")
+    "YE": "année"         # Year End (plus précis que "Y")
+}
     # Formats de date en fonction de hop_interval
     date_formats = {
         "seconds": "%d-%m-%Y %H:%M:%S",
@@ -119,7 +127,7 @@ def plotTimeSerie(df:pd.DataFrame,freq:str="D",hop_interval:str="weeks",hop_valu
             files[nom]=plot_file
         return files
         
-def main(year:int=None,month:int=None,categories:tuple|None=None,hop_interval:str="weeks",hop_value:int=1,freq:str="D")->dict:
+def trends(year:int=None,month:int=None,categories:tuple|None=None,hop_interval:str="weeks",hop_value:int=1,freq:str="D")->dict:
     """
     Docstring for wrapper
     lance plot_timeseries 
@@ -146,7 +154,8 @@ def main(year:int=None,month:int=None,categories:tuple|None=None,hop_interval:st
 
 if __name__=="__main__":
     #tests
-    frequences=["h","D","W","M","Y"]
+    #frequences=["10s", "30s", "min", "5min", "15min","30min","h","D","W","M","Y"]
+    #hop_intervals = ["seconds", "minutes", "hours", "days", "weeks"]
     start=pd.Timestamp("2023-10-01")
     end = start + timedelta(weeks=1)
     start=start.tz_localize("UTC")
@@ -158,4 +167,4 @@ if __name__=="__main__":
     #     "minutes": "minutes",
     #     "seconds": "seconds"
     # } exemple de hop intervals
-    main(2023,10,None,"days",1,"h")
+    trends(2023,10,None,"days",1,"h")

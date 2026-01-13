@@ -1,6 +1,5 @@
 from data_processing import RepartitionCaracteristiqueGlobale,RepartitionCaracteristiqueParCategorie,Proportion_ADR_Cat,nombreDevices,ColumnsList,RepartitionAdrGlobale,plotHistogramGlobal,plotHistogrammeParType
 from fastapi import APIRouter,HTTPException
-import os
 from server.models.stats.processing import ProcessRequest
 
 router = APIRouter(prefix="/api/stats", tags=["stats"])
@@ -50,6 +49,5 @@ async def process(data:ProcessRequest):
         raise HTTPException(status_code=404, detail=f"Pas de données pour annee:{data.year}, mois ={data.month}")
     except ValueError:
         raise HTTPException(status_code=404, detail=f"Pas de données pour annee:{data.year}, mois ={data.month}")
-    print(files)
     return {"status":"ok","images":files}
     
