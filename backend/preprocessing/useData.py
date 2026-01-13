@@ -53,6 +53,7 @@ def open_processed_df(file:str)->pd.DataFrame:
     :rtype: DataFrame
     """
     df= pd.read_json(file,orient="index")
+    df.set_index("time",inplace=True) #Pandas autorise d'avoir des index non uniques donc ça ne posera pas problème quoi qu'il arrive
     return df
 @cached(cache) #cache pour accès plus rapide
 def Ouvre_Json_Util(path)->pd.DataFrame:
@@ -249,10 +250,10 @@ def Choose_Open(year:int=None,month:int=None,categories:tuple=None)->pd.DataFram
         #normalement tous les cas possibles sont gérés, je ne peux pas avoir month sans avoir year
     except FileNotFoundError:
         print("fichier non trouvé")
-        return pd.DataFrame()
+        raise 
     except ValueError:
         print("fichier non trouvé")
-        return pd.DataFrame()
+        raise 
 
 
 if __name__=="__main__":

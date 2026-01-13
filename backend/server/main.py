@@ -51,12 +51,6 @@ async def uploadFile(file:UploadFile = File(...)): #syntaxe pour récupérer un 
 
 @app.post("/api/preprocessing")
 async def preprocessing(data:PreprocessRequest):
-    if data.month < 1 or data.month > 12:
-        raise HTTPException(
-            status_code=400,
-            detail="Mois invalide"
-        )
-
     if not data.attrList:
         raise HTTPException(
             status_code=400,
@@ -78,6 +72,8 @@ async def preprocessing(data:PreprocessRequest):
             )
     
     file=os.path.join(raw_data_dir,"raw.json")
+    
     prepare_data(data.rollingInterval,data.attrList,file)
+    
     return {"status":"ok","message":"Prétraitement terminé"}
         

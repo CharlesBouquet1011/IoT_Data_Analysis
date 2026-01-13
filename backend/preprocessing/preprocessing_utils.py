@@ -126,7 +126,7 @@ def sub_df_by_column(df:pd.DataFrame,column:str)->dict:
     return {Cat:val for Cat, val in groupe}
 
 def split_df_by_month(df:pd.DataFrame):
-    dic={(year,month): sub for (year,month),sub in df.groupby([df.index.year,df.index.month])}
+    dic={(int(year),int(month)): sub for (year,month),sub in df.groupby([df["time"].dt.year,df["time"].dt.month])}
     return dic
 
 def prepare_data(rolling_interval,attrList:list,file):
@@ -135,16 +135,16 @@ def prepare_data(rolling_interval,attrList:list,file):
     """
     #gte,lt=calcul_Gte_Lt(year,month)
     #file=download_data(gte,lt,year,month)
-    df=open_df_flattened(file)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+
+    flat_output_path=os.path.join(script_dir,"flattened","flat.json")
+    os.makedirs(os.path.join(script_dir,"flattened"),exist_ok=True)
+    flatten_datas(file,flat_output_path)
+    df=open_df_flattened(flat_output_path)
     for (year,month),monthlyDf in split_df_by_month(df).items():
-        
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        os.makedirs(os.path.join(script_dir,"flattened",str(year)),exist_ok=True)
-        flat_output_path=os.path.join(script_dir,"flattened",str(year),str(month)+".json")
-        flatten_datas(file,flat_output_path)
         file=flat_output_path
         
-        dfs=sub_df_by_column(df,"Type")
+        dfs=sub_df_by_column(monthlyDf,"Type")
         for Type,subDf in dfs.items():
             os.makedirs(os.path.join(script_dir,"Data",str(year),str(month)),exist_ok=True)
             outputFile=os.path.join(script_dir,"Data",str(year),str(month),Type+".json")
@@ -161,8 +161,7 @@ def open_df_flattened(fichier:str)->pd.DataFrame:
     """
 
     df= pd.read_json(fichier)
-    df["@timestamp"]=pd.to_datetime(df["@timestamp"])
-    df.set_index("@timestamp",inplace=True) #Pandas autorise d'avoir des index non uniques donc ça ne posera pas problème quoi qu'il arrive
+    df["time"]=pd.to_datetime(df["time"],errors="coerce",utc=True)
     return df
 
 

@@ -32,19 +32,24 @@ async def process(data:ProcessRequest):
              }
     files={}
     histogrammes=set(["BitRate","Airtime","lsnr","rssi","size"])#métriques qui doivent être analysées par histogramme
-    for column in data.columnList:
-        dictionnaireCat={}
-        alias=aliases[column] #pas de gestion pour voir s'il envoit un truc dedans ou pas, pas le temps, personne va modifier le javascript pour un projet comme ça
-        if column=="adr": #fonction spéciale
-            dictionnaireCat.update(Repartition_ADR_Cat(data.year,data.month))
-            dictionnaireCat.update(RepartitionAdrGlobale(data.year,data.month))
-        elif column in histogrammes:
-            dictionnaireCat.update(plotHistogrammeParType(column,alias,data.year,data.month))
-            dictionnaireCat.update(plotHistogramGlobal(column,alias,data.year,data.month))
-        else:
-            dictionnaireCat.update(RepartitionCaracteristiqueGlobale(column,alias,data.year,data.month))
-            dictionnaireCat.update(RepartitionCaracteristiqueParCategorie(column,alias,data.year,data.month))
-        files[column]=dictionnaireCat
+    try:
+        for column in data.columnList:
+            dictionnaireCat={}
+            alias=aliases[column] #pas de gestion pour voir s'il envoit un truc dedans ou pas, pas le temps, personne va modifier le javascript pour un projet comme ça
+            if column=="adr": #fonction spéciale
+                dictionnaireCat.update(Repartition_ADR_Cat(data.year,data.month))
+                dictionnaireCat.update(RepartitionAdrGlobale(data.year,data.month))
+            elif column in histogrammes:
+                dictionnaireCat.update(plotHistogrammeParType(column,alias,data.year,data.month))
+                dictionnaireCat.update(plotHistogramGlobal(column,alias,data.year,data.month))
+            else:
+                dictionnaireCat.update(RepartitionCaracteristiqueGlobale(column,alias,data.year,data.month))
+                dictionnaireCat.update(RepartitionCaracteristiqueParCategorie(column,alias,data.year,data.month))
+            files[column]=dictionnaireCat
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Pas de données pour annee:{data.year}, mois ={data.month}")
+    except ValueError:
+        raise HTTPException(status_code=404, detail=f"Pas de données pour annee:{data.year}, mois ={data.month}")
     print(files)
     return {"status":"ok","images":files}
     

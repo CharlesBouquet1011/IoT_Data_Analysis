@@ -44,7 +44,7 @@ export function Statistiques(){
         if (!response.ok){
             const errData = await response.json().catch(() => ({}))
             console.log("Erreur response:", errData)
-            setErreur(errData.error || `Erreur ${response.status}`)
+            setErreur(errData.detail || `Erreur ${response.status}`)
             setImages([])
         }
         else{
