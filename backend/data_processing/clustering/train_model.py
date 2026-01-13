@@ -19,16 +19,51 @@ from sklearn.impute import SimpleImputer
 # ======================
 # 1. Chargement données
 # ======================
-def load_packets(json_file):
-    with open(json_file, "r") as f:
+def load_packets(json_file_or_dir):
+    """Load packets from a single JSON file or recursively from a directory containing JSON files.
+
+    The function accepts either a path to a JSON file or a directory path. When given a
+    directory it will walk the tree, load all files ending with .json and concatenate
+    them into a single DataFrame.
+    """
+    if os.path.isdir(json_file_or_dir):
+        dfs = []
+        for root, _, files in os.walk(json_file_or_dir):
+            for fname in files:
+                if not fname.lower().endswith(".json"):
+                    continue
+                full = os.path.join(root, fname)
+                try:
+                    df = load_packets(full)
+                    if df is not None and not df.empty:
+                        dfs.append(df)
+                except Exception as e:
+                    print(f"Warning: failed to load {full}: {e}")
+        if len(dfs) == 0:
+            return pd.DataFrame()
+        return pd.concat(dfs, ignore_index=True)
+
+    # single file
+    with open(json_file_or_dir, "r", encoding="utf-8") as f:
         raw = json.load(f)
 
     packets = []
-    for ts, entries in raw.items():
+    # raw is expected to be a dict mapping timestamps -> list of entries
+    if isinstance(raw, dict):
+        items = raw.items()
+    elif isinstance(raw, list):
+        # some files may be a flat list of entries
+        items = [(None, raw)]
+    else:
+        items = []
+
+    for ts, entries in items:
         for e in entries:
+            if not isinstance(e, dict):
+                continue
             if "rxpk" not in e:
                 continue
-            rx = e["rxpk"][0]
+            rx = e["rxpk"][0] if isinstance(e.get("rxpk"), list) and len(e.get("rxpk"))>0 else {}
 
             packets.append({
                 "Dev_Add": e.get("Dev_Add"),
@@ -279,4 +314,6 @@ def train(json_file, output_dir="model"):
     print("Clusters détectés :", len(cluster_map))
 
 if __name__ == "__main__":
-    train("lorawan_packets_reduced_set.json")
+    default_data_dir = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", "preprocessing", "Data"))
+    print(f"Using data folder: {default_data_dir}")
+    train(default_data_dir)
