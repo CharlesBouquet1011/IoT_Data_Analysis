@@ -5,6 +5,7 @@ import {AnalysisMenu} from "../preprocessing/AnalysisMenu"
 import { Statistiques } from '../data_processing/Stat'
 import { Clustering } from '../data_processing/Clustering'
 import { Regression } from '../data_processing/Regression'
+import { Trends } from '../data_processing/Trends'
 const DataContext = createContext();
 
 export function MenuPrincipal(){
@@ -132,22 +133,13 @@ export function ChooseData(){
                 <Regression />
             )}
             {traitement===2 &&(
-                <>
-                Code affichage saisonnalité ici
-                </>
+                <Trends />
             )}
             {traitement===3 && (
                 <Clustering />
             )}
             {
                 traitement===4 && (
-                    <>
-                    Code Affichage Trends ici
-                    </>
-                )
-            }
-            {
-                traitement===5 && (
                     <Statistiques/>
                 )
             }

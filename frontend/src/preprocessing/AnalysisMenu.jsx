@@ -53,17 +53,10 @@ export function AnalysisMenu({ onChoice }){
             </label>
             <label className="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer flex items-center justify-between">
             <div>
-                <div className="font-medium text-gray-800">Trends</div>
-                <div className="text-sm text-gray-500">ajouter une description</div>
-            </div>
-            <input type="radio" name="analysis" value={4} checked={selection===4} onChange={()=>choose(4)} />
-            </label>
-            <label className="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer flex items-center justify-between">
-            <div>
                 <div className="font-medium text-gray-800">Statistiques</div>
                 <div className="text-sm text-gray-500">Statistiques diverses (répartitions de l'utilisation de différents paramètres)</div>
             </div>
-            <input type="radio" name="analysis" value={5} checked={selection===5} onChange={()=>choose(5)} />
+            <input type="radio" name="analysis" value={5} checked={selection===5} onChange={()=>choose(4)} />
             </label>
             <label className="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer flex items-center justify-between">
             <div>

@@ -178,7 +178,7 @@ function ChooseColumns({choosedColumns,setChoosedColumns}){
     
 }
 
-function DisplayImages({images}){
+export function DisplayImages({images}){
 
 
         return (

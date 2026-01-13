@@ -12,8 +12,11 @@ async def process(data:TrendsRequest):
             status_code=400,
             detail="Mois invalide"
         )
+    if data.categories:
+        files=trends(data.year,data.month,tuple(data.categories),data.hopInterval,data.hopValue,data.freq)
+    else:
+        files=trends(data.year,data.month,None,data.hopInterval,data.hopValue,data.freq)
 
-
-    files=trends(data.year,data.month,tuple(data.categories),data.hopInterval,data.hopValue,data.freq)
+    
     print(files)
     return {"status":"ok","images":files}
