@@ -50,6 +50,7 @@ def produce_dataset(df:pd.DataFrame,verbose:bool,undefined_toggle:bool,outlier_t
         df.dropna(inplace=True,axis=0,subset=selected_attrs,how="any") #on veut trier uniquement sur les attributs renseignés
         if verbose: 
             message=f"{Type}: Removed {initial_count - len(df)} packets with undefined values from {initial_count} initial packets.\n it is {(initial_count-len(df))*100/initial_count} % \n\n"
+            print(f"durée = {duree}") # VERBOSE affichage du contenu de la variable durée
             print(message) # VERBOSE affichage du nombre de paquets supprimés car attribut non défini
             write_log_removed(message)
     #on marque les entrées aberrantes puis on les supprimera dans un 2nd temps
