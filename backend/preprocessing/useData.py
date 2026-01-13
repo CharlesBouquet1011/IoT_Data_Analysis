@@ -53,6 +53,8 @@ def open_processed_df(file:str)->pd.DataFrame:
     :rtype: DataFrame
     """
     df= pd.read_json(file,orient="index")
+    df["time"]=pd.to_datetime(df["time"], errors="coerce", utc=True)
+    df["@timestamp"]=pd.to_datetime(df["@timestamp"], errors="coerce", utc=True)
     df.set_index("time",inplace=True) #Pandas autorise d'avoir des index non uniques donc ça ne posera pas problème quoi qu'il arrive
     return df
 @cached(cache) #cache pour accès plus rapide
