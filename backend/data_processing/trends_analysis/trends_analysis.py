@@ -83,22 +83,20 @@ def plotTimeSerie(df:pd.DataFrame,freq:str="D",hop_interval:str="weeks",hop_valu
         Copie=df.copy()
         
         Copie=Copie[(Copie.index>=start) & (Copie.index<=end)]
-        
-        
-        
-        timeSerie=Copie.resample(freq).size() #regroupe par intervalle de temps à partir de début et met en valeur le nombre de paquets qu'il y a eu
-        plt.figure()
-        timeSerie.plot(kind="line")
-        plt.ylabel("nombre de paquets")
-        plt.xlabel("Date")
-        nom=f"Nombre de paquets par {nom_freq.get(freq)} a partir de {start.strftime(date_format)} a {end.strftime(date_format)}"
-        plt.title(nom)
-        plot_file=os.path.join(plot_dir,f"{nom.replace(" ","-")}.webp")
-        plt.savefig(plot_file)
-        plt.close()
-        files[nom]=plot_file #j'enregistre le chemin du fichier dans un dictionnaire
-        end = end + timedelta(**{hop_interval:hop_value}) #ex week=1, ça fonctionne
-        start = start + timedelta(**{hop_interval:hop_value}) #on n'a pas de données, on décale d'une semaine pour avoir la suite du mois
+        if len(Copie)>0: 
+            timeSerie=Copie.resample(freq).size() #regroupe par intervalle de temps à partir de début et met en valeur le nombre de paquets qu'il y a eu
+            plt.figure()
+            timeSerie.plot(kind="line")
+            plt.ylabel("nombre de paquets")
+            plt.xlabel("Date")
+            nom=f"Nombre de paquets par {nom_freq.get(freq)} a partir de {start.strftime(date_format)} a {end.strftime(date_format)}"
+            plt.title(nom)
+            plot_file=os.path.join(plot_dir,f"{nom.replace(" ","-")}.webp")
+            plt.savefig(plot_file)
+            plt.close()
+            files[nom]=plot_file #j'enregistre le chemin du fichier dans un dictionnaire
+            end = end + timedelta(**{hop_interval:hop_value}) #ex week=1, ça fonctionne
+            start = start + timedelta(**{hop_interval:hop_value}) #on n'a pas de données, on décale d'une semaine pour avoir la suite du mois
     if start < df.index.max():
         end = df.index.max()
         Copie = df.copy()
