@@ -4,6 +4,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import os
+import numpy as np
 categories=["Confirmed Data Up","Confirmed Data Down","Join Accept","Join Request","Proprietary","RFU","Unconfirmed Data Up","Unconfirmed Data Down"]
 script_dir=os.path.dirname(os.path.abspath(__file__))
 backend_dir=os.path.dirname(os.path.dirname(script_dir))
@@ -41,7 +42,15 @@ def Repartition_ADR_Cat(annee:int|None=None,mois:int|None=None)->dict:
         nom+= " "+ str(annee)
     if mois is not None:
         nom+=" "+ str(mois)
-    plt.title(f"Proportion de Paquets avec adr par type")
+    ul=set(["Confirmed Data Up","Join Request","Unconfirmed Data Up"])
+    dl=set(["Confirmed Data Down","Join Accept","Unconfirmed Data Down"])
+    couleurs=["skyblue" if cat in ul else "salmon" if cat in dl else "grey" for cat in df.index.str.strip()]
+    plt.figure()
+    plt.bar(np.arange(len(df)), df["adr"], color=couleurs)
+    plt.xticks(np.arange(len(df)), df.index, rotation=45, ha='right')
+    plt.ylabel("Proportion")
+    plt.xlabel("adr")
+    plt.title("Proportion de Paquets avec adr par type")
     plt.xlabel("Type")
     plt.ylabel(nom)
     plt.ylim(0, 1)
