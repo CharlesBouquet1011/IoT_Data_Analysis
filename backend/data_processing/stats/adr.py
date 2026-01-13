@@ -28,7 +28,7 @@ def _proportion_ADR(repartitions:list,annee:int|None=None,mois:int|None=None,cat
         categorie="Global"
     repartitions.append({"categorie":categorie,"adr":taux})
 def Repartition_ADR_Dans_Categorie(annee:int|None=None,mois:int|None=None):
-    from paquets import _RepartitionCaraCat
+    from .paquets import _RepartitionCaraCat
     caracteristique="adr"
     valeursCaracteristiques=[0,1]
     alias="Adaptative Data Rate"
