@@ -27,11 +27,36 @@ def _proportion_ADR(repartitions:list,annee:int|None=None,mois:int|None=None,cat
     if categorie is None:
         categorie="Global"
     repartitions.append({"categorie":categorie,"adr":taux})
+def Repartition_ADR_Dans_Categorie(annee:int|None=None,mois:int|None=None):
+    from paquets import _RepartitionCaraCat
+    caracteristique="adr"
+    valeursCaracteristiques=[0,1]
+    alias="Adaptative Data Rate"
+    plot_files={}
+    for valeurCaracteristique in valeursCaracteristiques:
+        repartitions=[]
+        ul=set(["Confirmed Data Up","Join Request","Unconfirmed Data Up"])
+        dl=set(["Confirmed Data Down","Join Accept","Unconfirmed Data Down"])
+        plot_file=os.path.join(plot_dir,f"Repartition_Type_Paquets_ADR={str(valeurCaracteristique).replace("/","-")}.webp")
+        [_RepartitionCaraCat(caracteristique,valeurCaracteristique,alias,annee,mois,categorie,repartitions) for categorie in categories] #plots
+        df=pd.DataFrame(repartitions).set_index("categorie")
+        couleurs=["skyblue" if cat in ul else "salmon" if cat in dl else "grey" for cat in df.index.str.strip()]
+        print(list(df.index),couleurs)
+        plt.figure()
+        plt.bar(np.arange(len(df)), df[alias], color=couleurs)
+        plt.xticks(np.arange(len(df)), df.index, rotation=45, ha='right')
+        plt.ylabel("Taux")
+        plt.xlabel(alias)
+        plt.title(f"Repartition par Type de paquets dont {caracteristique}={valeurCaracteristique}")
+        plt.ylim(0, 1)
+        plt.tight_layout()
+        plt.savefig(plot_file)
+        plot_files[f"Repartition_{caracteristique}={valeurCaracteristique}"]=plot_file
+        plt.close()
+    return plot_files
     
-
-    
-def Repartition_ADR_Cat(annee:int|None=None,mois:int|None=None)->dict:
-    plot_file=os.path.join(plot_dir,f"Repartition_ADR_Categories.webp")
+def Proportion_ADR_Cat(annee:int|None=None,mois:int|None=None)->dict:
+    plot_file=os.path.join(plot_dir,f"Proportion_ADR_Categories.webp")
     repartitions=[]
 
     [_proportion_ADR(repartitions,annee,mois,cat) for cat in categories] #plots
@@ -57,8 +82,9 @@ def Repartition_ADR_Cat(annee:int|None=None,mois:int|None=None)->dict:
     plt.tight_layout()
     plt.savefig(plot_file)
     plt.close()
-    
-    return {nom:plot_file}
+    dico={nom:plot_file}
+    dico.update(Repartition_ADR_Dans_Categorie(annee,mois))
+    return dico
 
 def RepartitionAdrGlobale(annee:int|None=None,mois:int|None=None)->dict:
     plot_file=os.path.join(plot_dir,f"Repartition_ADR_Globale.webp")
@@ -79,4 +105,4 @@ def RepartitionAdrGlobale(annee:int|None=None,mois:int|None=None)->dict:
     return {nom:plot_file}
 if __name__=="__main__":
 
-    Repartition_ADR_Cat()
+    Proportion_ADR_Cat()

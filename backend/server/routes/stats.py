@@ -1,4 +1,4 @@
-from data_processing import RepartitionCaracteristiqueGlobale,RepartitionCaracteristiqueParCategorie,Repartition_ADR_Cat,nombreDevices,ColumnsList,RepartitionAdrGlobale,plotHistogramGlobal,plotHistogrammeParType
+from data_processing import RepartitionCaracteristiqueGlobale,RepartitionCaracteristiqueParCategorie,Proportion_ADR_Cat,nombreDevices,ColumnsList,RepartitionAdrGlobale,plotHistogramGlobal,plotHistogrammeParType
 from fastapi import APIRouter,HTTPException
 import os
 from server.models.stats.processing import ProcessRequest
@@ -37,7 +37,7 @@ async def process(data:ProcessRequest):
             dictionnaireCat={}
             alias=aliases[column] #pas de gestion pour voir s'il envoit un truc dedans ou pas, pas le temps, personne va modifier le javascript pour un projet comme ça
             if column=="adr": #fonction spéciale
-                dictionnaireCat.update(Repartition_ADR_Cat(data.year,data.month))
+                dictionnaireCat.update(Proportion_ADR_Cat(data.year,data.month))
                 dictionnaireCat.update(RepartitionAdrGlobale(data.year,data.month))
             elif column in histogrammes:
                 dictionnaireCat.update(plotHistogrammeParType(column,alias,data.year,data.month))
