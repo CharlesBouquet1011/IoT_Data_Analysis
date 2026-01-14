@@ -21,6 +21,7 @@ from .flatten_datas import flatten_datas
 from datetime import datetime
 from .txtUtils import write_log_removed
 from .RawParsing import addColAdr
+from .netId import addNwkOperator
 import pandas as pd
 import os
 import matplotlib
@@ -70,6 +71,7 @@ def produce_dataset(df:pd.DataFrame,verbose:bool,undefined_toggle:bool,outlier_t
         
     if verbose: print(f"Remaining packets after processing: {len(df)}") # VERBOSE sauvegarde du dataset
     df=addColAdr(df)
+    df=addNwkOperator(df)
     df.drop("outlier",axis=1,inplace=True)
     df.reset_index(inplace=True)
     df.to_json(fichier_sortie, orient="index", indent=2) #il faudra readJson avec orient="index"
@@ -164,8 +166,8 @@ def open_df_flattened(fichier:str)->pd.DataFrame:
     """
 
     df= pd.read_json(fichier)
-    df["time"]=pd.to_datetime(df["time"],errors="coerce",utc=True)
-    df.set_index("time",inplace=True)
+    df["@timestamp"]=pd.to_datetime(df["@timestamp"],errors="coerce",utc=True)
+    df.set_index("@timestamp",inplace=True)
     return df
 
 

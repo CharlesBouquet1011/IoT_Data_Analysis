@@ -1,0 +1,204 @@
+﻿NetID;DevAddr Prefix;Operator;Region
+0;00000000/7;Private/experimental nodes;Local
+1;02000000/7;Private/experimental nodes;Local
+2;04000000/7;Actility;World
+3;06000000/7;Proximus;Europe
+4;08000000/7;Swisscom;World
+5;0A000000/7;unassigned;
+6;0C000000/7;unassigned;
+7;0E000000/7;Bouygues Telecom;World
+8;10000000/7;Orbiwise;World
+9;12000000/7;SENET;World
+00000A;14000000/7;KPN;Europe
+00000B;16000000/7;EveryNet;Russia
+00000C;18000000/7;unassigned;
+00000D;1A000000/7;SK Telecom;World
+00000E;1C000000/7;SagemCom;World
+00000F;1E000000/7;Orange;World
+10;20000000/7;A2A Smart City;World
+11;22000000/7;unassigned;
+12;24000000/7;Kerlink;World
+13;26000000/7;The Things Network;World
+14;28000000/7;unassigned;
+15;2A000000/7;Cisco Systems;World
+16;2C000000/7;unassigned;
+17;2E000000/7;MultiTech Systems;World
+18;30000000/7;Loriot;World
+19;32000000/7;NNNCo;World
+00001A;34000000/7;unassigned;
+00001B;36000000/7;unassigned;
+00001C;38000000/7;unassigned;
+00001D;3A000000/7;unassigned;
+00001E;3C000000/7;unassigned;
+00001F;3E000000/7;Axatel;Italy
+20;40000000/7;unassigned;
+21;42000000/7;unassigned;
+22;44000000/7;Comcast;World
+23;46000000/7;Ventia;World
+24;48000000/7;unassigned;
+25;4A000000/7;unassigned;
+26;4C000000/7;unassigned;
+27;4E000000/7;unassigned;
+28;50000000/7;unassigned;
+29;52000000/7;unassigned;
+00002A;54000000/7;unassigned;
+00002B;56000000/7;unassigned;
+00002C;58000000/7;unassigned;
+00002D;5A000000/7;unassigned;
+00002E;5C000000/7;unassigned;
+00002F;5E000000/7;unassigned;
+30;60000000/7;SoftBank;World
+31;62000000/7;unassigned;
+32;64000000/7;unassigned;
+33;66000000/7;unassigned;
+34;68000000/7;unassigned;
+35;6A000000/7;Shenzhen Tencent Computer Systems Company Limited;China
+36;6C000000/7;Netze BW GmbH;World
+37;6E000000/7;Tektelic;World
+38;70000000/7;Charter Communicaton;USA
+39;72000000/7;Amazon;World
+600000;E0000000/15;RESERVED;
+600001;E0020000/15;Digita;Finland
+600002;E0040000/15;Netmore;Europe
+600003;E0060000/15;QuaeNet Inc.;World
+600004;E0080000/15;eleven-x;North and South America
+600005;E00A0000/15;IoT Network AS;World
+600006;E00C0000/15;unassigned;
+600007;E00E0000/15;EDF;World
+600008;E0100000/15;Unidata;Italy
+600009;E0120000/15;unassigned;
+60000A;E0140000/15;Öresundskraft;Scandinavia
+60000B;E0160000/15;unassigned;
+60000C;E0180000/15;unassigned;
+60000D;E01A0000/15;unassigned;
+60000E;E01C0000/15;Spark;World
+60000F;E01E0000/15;unassigned;
+600010;E0200000/15;Senet;World
+600011;E0220000/15;unassigned;
+600012;E0240000/15;unassigned;
+600013;E0260000/15;Actility;World
+600014;E0280000/15;Kerlink;World
+600015;E02A0000/15;unassigned;
+600016;E02C0000/15;Cisco;World
+600017;E02E0000/15;Schneider Electric;Global
+600018;E0300000/15;Minol ZENNER Connect GmbH;Global
+600019;E0320000/15;unassigned;
+60001A;E0340000/15;NEC Corporation;Japan
+60001B;E0360000/15;Shenzhen Tencent Computer Systems Company Limited;China
+60001C;E0380000/15;MachineQ/Comcast;World
+60001D;E03A0000/15;NTT (Nippon Telephone and Telegraph);Japan
+60001E;E03C0000/15;unassigned;
+60001F;E03E0000/15;KPN;Europe
+600020;E0400000/15;Spectrum;USA
+600021;E0420000/15;Microshare Inc.;World
+600022;E0440000/15;unassigned;
+600023;E0460000/15;unassigned;
+600024;E0480000/15;Netze BW GmbH;World
+600025;E04A0000/15;Tektelic;World
+600026;E04C0000/15;unassigned;
+600027;E04E0000/15;Birdz;World
+600028;E0500000/15;Charter Communication;USA
+600029;E0520000/15;Machines Talk;Saudi Arabia
+60002A;E0540000/15;Neptune Technology Group;North America
+60002B;E0560000/15;Amazon;World
+60002C;E0580000/15;myDevices;World
+60002D;E05A0000/15;Decentralized Wireless Foundation Inc;World
+60002E;E05C0000/15;Eutelsat S.A.;World
+C00000;FC000000/22;RESERVED;
+C00001;FC000400/22;unassigned;
+C00002;FC000800/22;ResIOT;World
+C00003;FC000C00/22;SYSDEV;World
+C00004;FC001000/22;unassigned;
+C00005;FC001400/22;Macnica;Japan
+C00006;FC001800/22;unassigned;
+C00007;FC001C00/22;unassigned;
+C00008;FC002000/22;Definium Technologies;World
+C00009;FC002400/22;unassigned;
+C0000A;FC002800/22;SenseWay;Japan
+C0000B;FC002C00/22;3S;Tunisia
+C0000C;FC003000/22;unassigned;
+C0000D;FC003400/22;Packetworx;Philippines
+C0000E;FC003800/22;unassigned;
+C0000F;FC003C00/22;Antenna Hungaria Co;Hungary
+C00010;FC004000/22;unassigned;
+C00011;FC004400/22;unassigned;
+C00012;FC004800/22;Netmore;Europe
+C00013;FC004C00/22;Lyse AS;Norway
+C00014;FC005000/22;VTC Digicom;Vietnam
+C00015;FC005400/22;Machines Talk;Saudi Arabia
+C00016;FC005800/22;Schneider Electric;Global
+C00017;FC005C00/22;Connexin;UK
+C00018;FC006000/22;Minol ZENNER Connect GmbH;Global
+C00019;FC006400/22;Telekom Srbija;Serbia
+C0001A;FC006800/22;REQUEA;World
+C0001B;FC006C00/22;Sensor Network Services;Austria
+C0001C;FC007000/22;unassigned;
+C0001D;FC007400/22;Boston Networks Limited;Europe
+C0001E;FC007800/22;unassigned;
+C0001F;FC007C00/22;mcf88 SRL;World
+C00020;FC008000/22;NEC Corporation;Japan
+C00021;FC008400/22;Hiber;World
+C00022;FC008800/22;unassigned;
+C00023;FC008C00/22;unassigned;
+C00024;FC009000/22;NTT (Nippon Telephone and Telegraph);Japan
+C00025;FC009400/22;International Centre for Free and Open Source Software (ICFOSS);India
+C00026;FC009800/22;unassigned;
+C00027;FC009C00/22;unassigned;
+C00028;FC00A000/22;Lacuna Space;World
+C00029;FC00A400/22;Andorra Telecom;Principality of Andorra
+C0002A;FC00A800/22;Xiamen Milesight IoT Co., Ltd.;World
+C0002B;FC00AC00/22;Grenoble Alps University;France
+C0002C;FC00B000/22;unassigned;
+C0002D;FC00B400/22;unassigned;
+C0002E;FC00B800/22;Spectrum;USA
+C0002F;FC00BC00/22;Afnic;France
+C00030;FC00C000/22;unassigned;
+C00031;FC00C400/22;unassigned;
+C00032;FC00C800/22;Microshare Inc.;World
+C00033;FC00CC00/22;HEIG-VD;Switzerland
+C00034;FC00D000/22;unassigned;
+C00035;FC00D400/22;unassigned;
+C00036;FC00D800/22;unassigned;
+C00037;FC00DC00/22;Alperia Fiber;Italy
+C00038;FC00E000/22;First Snow Co., Ltd;Republic of Korea
+C00039;FC00E400/22;Acklio;World
+C0003A;FC00E800/22;unassigned;
+C0003B;FC00EC00/22;Meshed Pty Ltd;Australia, New Zealand
+C0003C;FC00F000/22;Birdz;World
+C0003D;FC00F400/22;Arthur D Riley & Co Ltd;Asia Pacific
+C0003E;FC00F800/22;Komro GmbH;Germany, Austria, Switzerland
+C0003F;FC00FC00/22;RSAWEB;South Africa
+C00040;FC010000/22;Ceske Radiokomunikace;Czech Republic
+C00041;FC010400/22;CM Systems LLC;World
+C00042;FC010800/22;MIOT Melita.io Technology GmbH;Germany
+C00043;FC010C00/22;PROESYS S.r.l.;World
+C00044;FC011000/22;MeWe, Inc;World
+C00045;FC011400/22;Alpha-Omega Technology GmbH & Co. KG;Europe
+C00046;FC011800/22;SSE Contracting Limted t/a Mayflower Smart Control;UK, Ireland
+C00047;FC011C00/22;VEGA Grieshaber KG;World
+C00048;FC012000/22;Afghan Wireless Communication Company;Afghanistan
+C00049;FC012400/22;API-K;Europe
+C0004A;FC012800/22;Decstream LLC;Russian Federation
+C0004B;FC012C00/22;Nova Track Ltd;World
+C0004C;FC013000/22;IMT Atlantique;France
+C0004D;FC013400/22;Machines Talk;Saudi Arabia
+C0004E;FC013800/22;Yosensi Sp. z o.o.;World
+C0004F;FC013C00/22;The Saira 2.0, LLC dba The IoT Solutions;Guam, USA
+C00050;FC014000/22;Neptune Technology Group;North America
+C00051;FC014400/22;myDevices;World
+C00052;FC014800/22;Savoie Mont Blanc University;France
+C00053;FC014C00/22;Decentralized Wireless Foundation Inc;World
+C00054;FC015000/22;X-Telia Group Inc;Americas
+C00055;FC015400/22;Deviceroy;World
+C00056;FC015800/22;Eutelsat S.A.;World
+C00057;FC015C00/22;Bejing Dingtek Technology Corp. Ltd;World
+C00058;FC016000/22;The Things Network Foundation;World
+C00059;FC016400/22;Quandify AB;Europe and USA
+C0005A;FC016800/22;Hutchison Drei Austria GmbH;Europe
+C0005B;FC016C00/22;Agrology, PBC;North America
+C0005C;FC017000/22;mHascaro GmbH;Germany
+E00000;FE000000/25;RESERVED;
+E00010;FE000800/25;RESERVED;
+E00020;FE001000/25;Techtenna b.v.;World
+E00030;FE001800/25;LNX Solutions;South Africa
+E00040;FE002000/25;Cometa Sas;France
