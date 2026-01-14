@@ -110,26 +110,6 @@ export function Clustering() {
 
   return (
     <div className="space-y-6">
-      {/* Indicateur du type de graphique automatique */}
-      {selectedMetrics.length > 0 && (
-        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <div className="flex items-center justify-center">
-            <div className="flex-shrink-0 justify-center">
-              <h4 className="text-lg font-semibold text-blue-800 justify-center">
-                {selectedMetrics.length === 1 && "1️⃣ Graphique 1D - Distribution simple"}
-                {selectedMetrics.length === 2 && "2️⃣ Graphique 2D - Nuage de points"}
-                {selectedMetrics.length === 3 && "3️⃣ Graphique 3D - Nuage de points 3D"}
-                {selectedMetrics.length > 3 && "⚠️ Trop de métriques sélectionnées"}
-              </h4>
-              <p className="text-sm text-blue-600">
-                {selectedMetrics.length <= 3
-                  ? `${selectedMetrics.length} métrique${selectedMetrics.length > 1 ? 's' : ''} sélectionnée${selectedMetrics.length > 1 ? 's' : ''}`
-                  : `Sélectionnez maximum 3 métriques (actuellement ${selectedMetrics.length})`}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
         <h4 className="text-lg font-semibold text-gray-800 mb-3">
@@ -173,6 +153,27 @@ export function Clustering() {
           </div>
         )}
       </div>
+
+      {/* Indicateur du type de graphique automatique */}
+      {selectedMetrics.length > 0 && (
+        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex items-center justify-center">
+            <div className="flex-shrink-0 justify-center">
+              <h4 className="text-lg font-semibold text-blue-800 justify-center">
+                {selectedMetrics.length === 1 && "1️⃣ Graphique 1D - Distribution simple"}
+                {selectedMetrics.length === 2 && "2️⃣ Graphique 2D - Nuage de points"}
+                {selectedMetrics.length === 3 && "3️⃣ Graphique 3D - Nuage de points 3D"}
+                {selectedMetrics.length > 3 && "⚠️ Trop de métriques sélectionnées"}
+              </h4>
+              <p className="text-sm text-blue-600">
+                {selectedMetrics.length <= 3
+                  ? `${selectedMetrics.length} métrique${selectedMetrics.length > 1 ? 's' : ''} sélectionnée${selectedMetrics.length > 1 ? 's' : ''}`
+                  : `Sélectionnez maximum 3 métriques (actuellement ${selectedMetrics.length})`}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {erreur && (
         <p className="text-red-600 font-semibold bg-red-50 border border-red-200 rounded-lg px-4 py-2">

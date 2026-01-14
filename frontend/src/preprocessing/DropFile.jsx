@@ -175,21 +175,21 @@ className="w-full px-4 py-2 border border-gray-300 rounded-lg
   <div className="grid grid-cols-2 gap-4 mt-2">
 
   {attributs.map((attr)=>(
-    <label key={attr} className='text-gray-800'>
-      <input type='checkbox'
-      checked={attrList.includes(attr)}
-      className="h-4 w-4 text-blue-600 border-gray-400 rounded focus:ring-blue-500"
-      onChange={()=>{
-        setAttrList(prev => {
-          if (prev.includes(attr)) {
-            return prev.filter(v => v !== attr);
-          }
-          return [...prev, attr];
-        });
-      
-            }}
+    <label key={attr} className="flex items-center space-x-2 p-2 border rounded hover:bg-gray-50 cursor-pointer text-gray-800">
+      <input
+        type="checkbox"
+        checked={attrList.includes(attr)}
+        className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+        onChange={() => {
+          setAttrList(prev => {
+            if (prev.includes(attr)) {
+              return prev.filter(v => v !== attr);
+            }
+            return [...prev, attr];
+          });
+        }}
       />
-      {attr}
+      <span className="text-sm text-gray-800">{attr}</span>
     </label>
   ))}
   </div>
@@ -223,6 +223,7 @@ className="w-full px-4 py-2 border border-gray-300 rounded-lg
     </button>
   </div>
   {rollingIntervalType &&(
+    <div className="mt-4">
     <>
     {rollingIntervalType==="nb" ? <>
     <input type='number' min="2" max="10" id="nbPoints" name="nbPoints"
@@ -235,7 +236,7 @@ className="w-full px-4 py-2 border border-gray-300 rounded-lg
     </input>
     
     </> 
-      : 
+      :
       
     <>
     <select value={rollingInterval} id="choixDuree"
@@ -256,6 +257,7 @@ className="w-full px-4 py-2 border border-gray-300 rounded-lg
     </>}
     
     </>
+    </div>
   )}
 
     {erreur && (
@@ -268,11 +270,11 @@ className="w-full px-4 py-2 border border-gray-300 rounded-lg
           Les données ont bien été traitées choisissez maintenant le traitement des données à l'aide du menu
       </p> 
     )}
-    <button
-    onClick={()=>preprocessData()}
-    className="w-full bg-blue-600 hover:bg-blue-700 text-white
-             font-semibold py-3 rounded-lg transition">
-      Confirmer</button>
+        <button
+        onClick={()=>preprocessData()}
+        className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white
+            font-semibold py-3 rounded-lg transition">
+          Confirmer</button>
           
 </>
 

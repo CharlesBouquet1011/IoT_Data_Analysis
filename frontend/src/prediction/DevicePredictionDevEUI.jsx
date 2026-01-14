@@ -14,7 +14,7 @@
 
 import { useState } from "react"
 
-export function DevicePrediction() {
+export function DevicePredictionDevEUI() {
   const [isTraining, setIsTraining] = useState(false)
   const [trainingStatus, setTrainingStatus] = useState("")
   const [trainingOutput, setTrainingOutput] = useState("")
