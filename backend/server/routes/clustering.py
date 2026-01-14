@@ -13,13 +13,17 @@
 # limitations under the License.
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 import matplotlib.pyplot as plt
 import os
 import base64
+import subprocess
+import sys
 
 from data_processing.clustering.clustering import plot_clustering
+from data_processing.clustering.predict_dev_eui.predict_device import predict_device
 
 router = APIRouter(prefix="/api/clustering", tags=["clustering"])
 
@@ -108,3 +112,156 @@ async def process_clustering(data: ClusteringRequest):
             )
 
     return {"status": "ok", "images": images}
+
+
+# ======================
+# Nouvelles routes pour training et prédiction
+# ======================
+
+class PredictDeviceRequest(BaseModel):
+    SF: float
+    Bandwidth: float
+    BitRate: float
+    Coding_rate: str
+    Airtime: float
+    freq: float
+    rssi: float
+    lsnr: float
+    size: float
+    Type: str
+
+
+@router.post("/train")
+async def train_model():
+    """
+    Lance l'entraînement du modèle de clustering en exécutant train_model.py
+    """
+    try:
+        # Obtenir le chemin vers train_model.py
+        script_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        train_script = os.path.join(script_dir, "data_processing", "clustering", "predict_dev_eui", "train_model.py")
+        
+        if not os.path.exists(train_script):
+            raise HTTPException(
+                status_code=404,
+                detail=f"Script train_model.py non trouvé à {train_script}"
+            )
+        
+        # Exécuter le script avec Python
+        result = subprocess.run(
+            [sys.executable, train_script],
+            capture_output=True,
+            text=True,
+            cwd=script_dir
+        )
+        
+        if result.returncode != 0:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Erreur lors de l'entraînement: {result.stderr}"
+            )
+        
+        return {
+            "status": "ok",
+            "message": "Modèle entraîné avec succès",
+            "output": result.stdout
+        }
+    
+    except subprocess.TimeoutExpired:
+        raise HTTPException(
+            status_code=408,
+            detail="L'entraînement a pris trop de temps"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur lors de l'entraînement: {str(e)}"
+        )
+
+
+@router.get("/train/stream")
+def train_model_stream():
+    """Stream stdout/stderr of train_model.py as Server-Sent Events (SSE).
+
+    Each line is sent as an SSE `data:` event. The client should listen
+    with EventSource and append messages as they arrive.
+    """
+    try:
+        script_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        train_script = os.path.join(script_dir, "data_processing", "clustering", "predict_dev_eui", "train_model.py")
+
+        if not os.path.exists(train_script):
+            raise HTTPException(
+                status_code=404,
+                detail=f"Script train_model.py non trouvé à {train_script}"
+            )
+
+        def iter_process():
+            proc = subprocess.Popen(
+                [sys.executable, train_script],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
+                cwd=script_dir
+            )
+
+            # stream lines as SSE 'data:' events
+            try:
+                for line in iter(proc.stdout.readline, ""):
+                    if line is None:
+                        break
+                    # escape CRLF and ensure event format
+                    yield f"data: {line.rstrip()}\n\n"
+                rc = proc.wait()
+                yield f"data: __TRAIN_EXIT__ {rc}\n\n"
+            except GeneratorExit:
+                try:
+                    proc.kill()
+                except Exception:
+                    pass
+
+        return StreamingResponse(iter_process(), media_type="text/event-stream")
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur lors du démarrage de l'entraînement: {str(e)}")
+
+
+@router.post("/predict")
+async def predict_device_endpoint(data: PredictDeviceRequest):
+    """
+    Prédit le device à partir des caractéristiques du paquet
+    """
+    try:
+        # Convertir les données en dictionnaire pour predict_device
+        packet = {
+            "SF": data.SF,
+            "Bandwidth": data.Bandwidth,
+            "BitRate": data.BitRate,
+            "Coding_rate": data.Coding_rate,
+            "Airtime": data.Airtime,
+            "freq": data.freq,
+            "rssi": data.rssi,
+            "lsnr": data.lsnr,
+            "size": data.size,
+            "Type": data.Type
+        }
+        
+        # Appeler la fonction de prédiction
+        result = predict_device(packet, top_k=10)
+        
+        return {
+            "status": "ok",
+            "result": result
+        }
+    
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=404,
+            detail="Modèle non trouvé. Veuillez d'abord entraîner le modèle."
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Erreur lors de la prédiction: {str(e)}"
+        )
