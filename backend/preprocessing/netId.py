@@ -48,15 +48,11 @@ def addNwkOperator(df:pd.DataFrame)->pd.DataFrame:
     df["NwkId"]=df["Dev_Add"].apply(nwkId)
     file=os.path.join(script_dir,"operateursLoraWan.csv")
     TableauOperateurs = pd.read_csv(file, sep=";", encoding="utf-8")
-    print(repr(TableauOperateurs["DevAddr Prefix"].iloc[0:10]))
     # Utilise zip pour séparer les tuples correctement
-    result = TableauOperateurs["DevAddr Prefix"].apply(splitPrefixLen)
+    result = TableauOperateurs["DevAddr Prefix"].apply(splitPrefixLen)#je dois faire une série de tuples
     TableauOperateurs["Prefix"] = result.apply(lambda x: x[0])
-    TableauOperateurs["longueurPrefix"] = result.apply(lambda x: x[1]) #je dois faire une série de tuples
+    TableauOperateurs["longueurPrefix"] = result.apply(lambda x: x[1]) 
     TableauOperateurs["comparaison"]=TableauOperateurs.apply(lambda ligne: ligne["Prefix"]>>(32-ligne["longueurPrefix"]),axis=1)
-    print(TableauOperateurs.dtypes)
-    print(TableauOperateurs[["DevAddr Prefix", "Prefix", "longueurPrefix"]].head(20))
-    print(df.dtypes)
     df["NwkId"] = pd.to_numeric(df["NwkId"], errors='coerce').astype('Int64') #conversion de la colonne problématique (quelques Dev_Addr sont vides)
     #merge des tables pour associer mes clés (NwkId) aux Opérateurs
     df=df.merge(TableauOperateurs[["comparaison","Operator"]],"left",

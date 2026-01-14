@@ -39,7 +39,8 @@ Ouvre_Json_Categorie_Annee:
 import pandas as pd
 import os
 from cachetools import TTLCache, cached
-cache = TTLCache(maxsize=100, ttl=120) #TTL de 120 secondes, max 100 éléments mémorisés cache nécessaire pour accélérer les algos
+import sys
+cache = TTLCache(maxsize=1_000_000_000, ttl=120,getsizeof=sys.getsizeof) #TTL de 120 secondes, max 1 Go éléments mémorisés cache nécessaire pour accélérer les algos
 #peu intéressant d'optimiser comme c'est surtout des essais de différentes méthodes
 
 def open_processed_df(file:str)->pd.DataFrame:
@@ -52,8 +53,12 @@ def open_processed_df(file:str)->pd.DataFrame:
     :return: Dataframe correspondant au json choisi
     :rtype: DataFrame
     """
-    df= pd.read_json(file,orient="index")
+    dfs = []
+    for chunk in pd.read_json(file, lines=True, chunksize=100_000):
+        dfs.append(chunk)
+    df = pd.concat(dfs, ignore_index=True)
     if not df.empty:
+        print(df.head(10))
         df["time"]=pd.to_datetime(df["time"], errors="coerce", utc=True)
         df["@timestamp"]=pd.to_datetime(df["@timestamp"], errors="coerce", utc=True,unit="ms")
         df.set_index("@timestamp",inplace=True) #Pandas autorise d'avoir des index non uniques donc ça ne posera pas problème quoi qu'il arrive

@@ -57,7 +57,8 @@ def produce_dataset(df:pd.DataFrame,verbose:bool,undefined_toggle:bool,outlier_t
     #on marque les entrées aberrantes puis on les supprimera dans un 2nd temps
     #sinon on pourrait supprimer des valeurs qui n'étaient pas si aberrantes que ça
     df["outlier"]=False
-    
+    print(df.head)
+    print(f"Index name: {df.index.name}")
     if outlier_toggle:
         for attr in selected_attrs:
             if pd.api.types.is_numeric_dtype(df[attr]):
@@ -70,11 +71,12 @@ def produce_dataset(df:pd.DataFrame,verbose:bool,undefined_toggle:bool,outlier_t
         df=df[~ df["outlier"]]
         
     if verbose: print(f"Remaining packets after processing: {len(df)}") # VERBOSE sauvegarde du dataset
-    df=addColAdr(df)
-    df=addNwkOperator(df)
-    df.drop("outlier",axis=1,inplace=True)
     df.reset_index(inplace=True)
-    df.to_json(fichier_sortie, orient="index", indent=2) #il faudra readJson avec orient="index"
+    df=addColAdr(df)
+    df=addNwkOperator(df) #le merge ici MODIFIE l'index
+    df.drop("outlier",axis=1,inplace=True)
+    print(f"Colonnes avant sauvegarde: {df.columns.tolist()}")
+    df.to_json(fichier_sortie, orient="records",lines=True) #il faudra readJson avec orient="index"
     print("custom_dataset.json generated successfully.") # VERBOSE terminé !
     return df #au cas où
 
@@ -146,6 +148,7 @@ def prepare_data(rolling_interval,attrList:list,file):
     os.makedirs(os.path.join(script_dir,"flattened"),exist_ok=True)
     flatten_datas(file,flat_output_path)
     df=open_df_flattened(flat_output_path)
+    print(df.head)
     for (year,month),monthlyDf in split_df_by_month(df).items():
         file=flat_output_path
         
@@ -165,7 +168,10 @@ def open_df_flattened(fichier:str)->pd.DataFrame:
     :rtype: DataFrame
     """
 
-    df= pd.read_json(fichier)
+    dfs = []
+    for chunk in pd.read_json(fichier, lines=True, chunksize=100_000):
+        dfs.append(chunk)
+    df = pd.concat(dfs, ignore_index=True)
     df["@timestamp"]=pd.to_datetime(df["@timestamp"],errors="coerce",utc=True)
     df.set_index("@timestamp",inplace=True)
     return df
