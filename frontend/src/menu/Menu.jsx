@@ -6,7 +6,7 @@ import { Statistiques } from '../data_processing/Stat'
 import { Clustering } from '../data_processing/Clustering'
 import { Regression } from '../data_processing/Regression'
 import { Trends } from '../data_processing/Trends'
-import { DevicePrediction } from '../prediction/DevicePrediction'
+import { DevicePrediction } from '../prediction/DevicePredictionDevEUI'
 const DataContext = createContext();
 
 export function MenuPrincipal(){
