@@ -9,6 +9,11 @@
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+# Models data
+*.pkl
+./backend/data_processing/clustering/predict_dev_eui/model
+./backend/data_processing/clustering/predict_dev_add/model
+
 # dependencies
 ./frontend/node_modules
 ./frontend/.pnp
