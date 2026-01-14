@@ -143,8 +143,8 @@ export function DevicePredictionDevEUI() {
 
   return (
     <div className="p-6 max-w-6xl mx-auto text-gray-800">
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">
-        Prédiction de Device IoT
+      <h1 className="text-3xl font-semibold mb-6 text-gray-800">
+        Prédiction de Device basée sur le Dev_EUI
       </h1>
 
       {/* Section d'entraînement */}
@@ -162,7 +162,7 @@ export function DevicePredictionDevEUI() {
           className={`px-6 py-3 rounded-lg font-medium transition-colors ${
             isTraining
               ? "bg-gray-400 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700 text-white"
+              : "bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow-md"
           }`}
         >
           {isTraining ? "Entraînement en cours..." : "Entraîner le modèle"}
@@ -199,7 +199,7 @@ export function DevicePredictionDevEUI() {
                 step="1"
                 value={formData.SF}
                 onChange={(e) => handleInputChange("SF", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
                 required
               />
             </div>
@@ -214,7 +214,7 @@ export function DevicePredictionDevEUI() {
                 step="any"
                 value={formData.Bandwidth}
                 onChange={(e) => handleInputChange("Bandwidth", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
                 required
               />
             </div>
@@ -229,7 +229,7 @@ export function DevicePredictionDevEUI() {
                 step="any"
                 value={formData.BitRate}
                 onChange={(e) => handleInputChange("BitRate", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
                 required
               />
             </div>
@@ -242,7 +242,7 @@ export function DevicePredictionDevEUI() {
               <select
                 value={formData.Coding_rate}
                 onChange={(e) => handleInputChange("Coding_rate", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
                 required
               >
                 {codingRateOptions.map(rate => (
@@ -261,7 +261,7 @@ export function DevicePredictionDevEUI() {
                 step="any"
                 value={formData.Airtime}
                 onChange={(e) => handleInputChange("Airtime", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
                 required
               />
             </div>
@@ -276,7 +276,7 @@ export function DevicePredictionDevEUI() {
                 step="any"
                 value={formData.freq}
                 onChange={(e) => handleInputChange("freq", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
                 required
               />
             </div>
@@ -291,7 +291,7 @@ export function DevicePredictionDevEUI() {
                 step="any"
                 value={formData.rssi}
                 onChange={(e) => handleInputChange("rssi", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
                 required
               />
             </div>
@@ -306,7 +306,7 @@ export function DevicePredictionDevEUI() {
                 step="any"
                 value={formData.lsnr}
                 onChange={(e) => handleInputChange("lsnr", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
                 required
               />
             </div>
@@ -321,7 +321,7 @@ export function DevicePredictionDevEUI() {
                 step="any"
                 value={formData.size}
                 onChange={(e) => handleInputChange("size", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
                 required
               />
             </div>
@@ -334,7 +334,7 @@ export function DevicePredictionDevEUI() {
               <select
                 value={formData.Type}
                 onChange={(e) => handleInputChange("Type", e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
                 required
               >
                 {typeOptions.map(type => (
@@ -350,7 +350,7 @@ export function DevicePredictionDevEUI() {
             className={`w-full px-6 py-3 rounded-lg font-medium transition-colors ${
               isPredicting
                 ? "bg-gray-400 cursor-not-allowed"
-                : "bg-green-600 hover:bg-green-700 text-white"
+                : "bg-green-600 hover:bg-green-700 text-white shadow-sm hover:shadow-md"
             }`}
           >
             {isPredicting ? "Prédiction en cours..." : "Prédire le device"}
