@@ -6,6 +6,7 @@ import { Statistiques } from '../data_processing/Stat'
 import { Clustering } from '../data_processing/Clustering'
 import { Regression } from '../data_processing/Regression'
 import { Trends } from '../data_processing/Trends'
+import { DevicePrediction } from '../prediction/DevicePrediction'
 const DataContext = createContext();
 
 export function MenuPrincipal(){
@@ -48,6 +49,20 @@ export function MenuPrincipal(){
                         
                         </label>
                     </td>
+                    <td className="p-4 border border-gray-200">
+                        <label className="flex items-center space-x-3 cursor-pointer">
+                        <input
+                            type="radio"
+                            name="choix"
+                            value="3"
+                            onClick={() => setSelection(3)}
+                            className="form-radio text-indigo-600"
+                        />
+                        <span className="text-gray-800 font-medium">
+                            Prédiction Dev_EUI
+                        </span>
+                        </label>
+                    </td>
                     </tr>
                 </tbody>
             </table>
@@ -57,6 +72,8 @@ export function MenuPrincipal(){
             )}
 
             {selection ==2 && (<ChooseData />)}
+            
+            {selection ==3 && (<DevicePrediction />)}
 
             </div>
         </>
