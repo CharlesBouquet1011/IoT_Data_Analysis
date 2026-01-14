@@ -27,7 +27,8 @@ async def process(data:ProcessRequest):
     aliases={"Bandwidth":"Bandwidth","Coding_rate":"Coding Rate","GW_EUI": "Id Gateway","SF":"Spreading Factor","freq":"sous bande",
              "modu":"modulation","adr":"Adaptive Data Rate",
              "BitRate":"BitRate","Airtime":"Durée de vol","lsnr":"SNR","rssi":"Puissance du signal reçu","size":"taille du paquet",
-             "rfch":"RF Chain"
+             "rfch":"RF Chain",
+             "Operator":"Opérateur"
              }
     files={}
     histogrammes=set(["BitRate","Airtime","lsnr","rssi","size"])#métriques qui doivent être analysées par histogramme

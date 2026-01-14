@@ -89,7 +89,7 @@ export function Statistiques(){
 
 
 function ChooseColumns({choosedColumns,setChoosedColumns}){
-    const columns=["Bandwidth","Coding_rate","GW_EUI","SF","freq","modu","adr","rfch", //métriques pour proportion
+    const columns=["Bandwidth","Coding_rate","GW_EUI","SF","freq","modu","adr","rfch","Operator", //métriques pour proportion
         "BitRate","Airtime","lsnr","rssi","size"//métriques pour histogramme
 
     ]

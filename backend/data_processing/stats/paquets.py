@@ -49,8 +49,13 @@ def GetListValues(caracteristique:str,annee:int=None,mois:int=None)->ndarray:
         return GatewayList(annee,mois)
     df=Choose_Open(annee,mois)
     liste=df[caracteristique].unique()
-    liste.sort()
-    return liste
+    
+    valides = [x for x in liste if x is not None and pd.notna(x)] #ce qu'on peut sort
+    nones = [x for x in liste if x is None or pd.isna(x)] # NA (on ne peut pas sort)
+    
+    valides.sort()
+    return valides + nones
+    
 def _RepartitionCaraCat(caracteristique:str,valeurCaracteristique,alias:str,annee:int=None,mois:int=None,categorie:str=None,repartitions:list=None):
     """
     Docstring for _proportionCaraCat
@@ -74,7 +79,10 @@ def _RepartitionCaraCat(caracteristique:str,valeurCaracteristique,alias:str,anne
     dfCat=df[df["Type"]==categorie]
     nombre=len(dfCat[dfCat[caracteristique]==valeurCaracteristique])
     tot=len(df[df[caracteristique]==valeurCaracteristique])
-    taux=nombre/tot 
+    if tot!=0:
+        taux=nombre/tot 
+    else:
+        taux=0
     repartitions.append({"categorie":categorie,alias:taux})
 def _proportionCaraCat(caracteristique:str,valeurCaracteristique,alias:str,annee:int=None,mois:int=None,categorie:str=None,repartitions:list=None):
     """
@@ -190,16 +198,76 @@ def RepartitionCaracteristiqueGlobale(caracteristique:str,alias:str,annee:int=No
     plot_file=os.path.join(plot_dir,f"Repartition_{alias}_Globale.webp")
     [_proportionCaracteristique(annee,mois,repartitions,caracteristique,alias,gw) for gw in GetListValues(caracteristique,annee,mois)] #plots
     df=pd.DataFrame(repartitions).set_index(alias)
+    df.index = df.index.map(lambda x: str(x)[:20] + '...' if len(str(x)) > 20 else str(x))
+    # Somme par ligne
+    row_sums = df.sum(axis=1)
+
+    # Réorganiser les lignes selon l'ordre décroissant des sommes
+    df = df.reindex(row_sums.sort_values(ascending=False).index)
     df.plot(kind='bar',legend=False)
     nom=f"Proportion {alias} globale"
     plt.ylabel("Taux")
     plt.title(nom)
     plt.xlabel(alias)
     plt.ylim(0, 1)
+    plt.xticks(rotation=45, ha='right', fontsize=9)
     plt.tight_layout()
     plt.savefig(plot_file)
     plt.close()
-    return {nom:plot_file}
+
+    plot_files = {nom:plot_file}
+    #2e graphique (demandé par les profs pour mieux visualiser)
+    #aidé par IA comme je ne savais pas du tout faire ça
+    plot_file_detail = os.path.join(plot_dir, f"Repartition_Globale_{alias}_Detaillee_Par_Type.webp")
+    
+    df_full = Choose_Open(annee, mois)
+    total_paquets = len(df_full)
+    # création d'un DataFrame dont les lignes sont les valeurs caractéristiques et les colonnes sont les types de paquets
+    pivot_data = df_full.groupby([caracteristique, 'Type']).size().unstack(fill_value=0)
+    
+    # Normalisation
+    pivot_normalized = pivot_data/total_paquets
+    pivot_normalized.index = pivot_normalized.index.map(
+        lambda x: str(x)[:20] + '...' if len(str(x)) > 20 else str(x)
+    )
+    row_sums = pivot_normalized.sum(axis=1)
+
+    # trie par ordre décroissant de présence
+    pivot_normalized = pivot_normalized.reindex(row_sums.sort_values(ascending=False).index)
+    #couleurs choisies par IA
+    type_colors = {
+        "Confirmed Data Up": "#3498db",      # Bleu
+        "Unconfirmed Data Up": "#5dade2",    # Bleu clair
+        "Join Request": "#85c1e9",           # Bleu très clair
+        "Confirmed Data Down": "#e74c3c",    # Rouge
+        "Unconfirmed Data Down": "#ec7063",  # Rouge clair
+        "Join Accept": "#f1948a",            # Rouge très clair
+        "Proprietary": "#95a5a6",            # Gris
+        "RFU": "#bdc3c7"                     # Gris clair
+    }
+    colors = [type_colors.get(cat, '#34495e') for cat in pivot_normalized.columns]
+    
+    #création du graphique
+    ax = pivot_normalized.plot(
+        kind='bar', 
+        stacked=True, 
+        color=colors,
+        figsize=(12, 6)
+    )
+    
+    nom_detail = f"Répartition Globale {alias} détaillée par type de paquet"
+    plt.ylabel("Proportion")
+    plt.title(nom_detail)
+    plt.xlabel(alias)
+    plt.ylim(0, 1)
+    plt.xticks(rotation=45, ha='right', fontsize=9)
+    plt.legend(title='Type de paquet', bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8)
+    plt.tight_layout()
+    plt.savefig(plot_file_detail, bbox_inches='tight')  # bbox_inches pour inclure la légende
+    plt.close()
+    plot_files[nom_detail] = plot_file_detail
+    
+    return plot_files
 
 def plotHistogramGlobal(caracteristique:str,alias:str,annee:int=None,mois:int=None):
     plot_file=os.path.join(plot_dir,f"Histogramme_{alias}_Global.webp")
