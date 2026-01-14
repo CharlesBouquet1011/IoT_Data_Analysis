@@ -387,7 +387,7 @@ export function DevicePredictionDevEUI() {
             {predictionResult.candidates && predictionResult.candidates.length > 0 && (
               <div>
                 <h4 className="font-semibold mb-2 text-blue-900">
-                  Top candidats:
+                  Indices de confiance
                 </h4>
                 <div className="space-y-2">
                   {predictionResult.candidates.slice(0, 5).map((candidate, idx) => (
@@ -417,7 +417,7 @@ export function DevicePredictionDevEUI() {
 
             {/* Sortie brute JSON du script predict_device.py */}
             <div className="mt-4">
-              <h4 className="font-semibold mb-2 text-blue-900">Sortie brute:</h4>
+              <h4 className="font-semibold mb-2 text-blue-900">Sortie</h4>
               <pre className="bg-white text-sm text-gray-800 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap">
 {JSON.stringify(predictionResult, null, 2)}
               </pre>
