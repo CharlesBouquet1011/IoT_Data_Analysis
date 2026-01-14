@@ -94,7 +94,7 @@ export function ChooseData(){
                     showYearPicker
                     dateFormat="yyyy"
                     placeholderText='Choisir une année'
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    className="w-full h-12 px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
                 />
 
                 <DatePicker selected={month}
@@ -102,7 +102,7 @@ export function ChooseData(){
                     showMonthYearPicker
                     dateFormat="MM"
                     placeholderText='Choisir un mois'
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                    className="w-full h-12 px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-300"
                 />
             </div>
 
