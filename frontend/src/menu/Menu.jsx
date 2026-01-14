@@ -62,9 +62,44 @@ export function MenuPrincipal(){
                 <div className="mt-6">
                     {selection === 1 && (<UploadForm />)}
                     {selection === 2 && (<ChooseData />)}
-                    {selection === 3 && (<DevicePredictionDevEUI />)}
-                    {selection === 4 && (<DevicePredictionDevAdd />)}
+                    {selection === 3 && (<PredictionMenu />)}
                 </div>
+            </div>
+        </div>
+    )
+}
+
+export function PredictionMenu(){
+    const [predictionType, setPredictionType] = useState(0)
+
+    return (
+        <div className="bg-white rounded-lg p-5 shadow-inner">
+            <h3 className="text-lg font-bold text-gray-800 mb-3">Choisissez le type de prédiction</h3>
+            <p className="text-sm text-gray-500 mb-4 font-semibold">Sélectionnez ce que vous souhaitez prédire à partir des caractéristiques radio</p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <button
+                    onClick={() => setPredictionType(1)}
+                    className={`flex flex-col items-start p-4 rounded-lg border ${predictionType===1? 'border-purple-400 bg-purple-50' : 'border-gray-200 bg-white'} shadow-sm hover:shadow-md transition`}
+                    aria-pressed={predictionType===1}
+                >
+                    <div className="text-gray-900 font-medium font-semibold mb-2">🔑 Prédire Dev_EUI</div>
+                    <div className="text-sm text-gray-500">Identifiez le dispositif IoT (Dev_EUI) à partir des caractéristiques radio des paquets Join Request</div>
+                </button>
+
+                <button
+                    onClick={() => setPredictionType(2)}
+                    className={`flex flex-col items-start p-4 rounded-lg border ${predictionType===2? 'border-cyan-400 bg-cyan-50' : 'border-gray-200 bg-white'} shadow-sm hover:shadow-md transition`}
+                    aria-pressed={predictionType===2}
+                >
+                    <div className="text-gray-900 font-medium font-semibold mb-2">📍 Prédire Dev_Add</div>
+                    <div className="text-sm text-gray-500">Identifiez l'adresse du dispositif (Dev_Add) à partir des caractéristiques radio de tous types de paquets</div>
+                </button>
+            </div>
+
+            <div className="border-t pt-4">
+                {predictionType === 1 && <DevicePredictionDevEUI />}
+                {predictionType === 2 && <DevicePredictionDevAdd />}
             </div>
         </div>
     )

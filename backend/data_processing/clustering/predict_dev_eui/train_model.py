@@ -205,6 +205,14 @@ def train(json_file_or_dir, output_dir=None):
 
         y_sup_filtered = y_sup.copy()
 
+        # Limit training data if too large to prevent OOM
+        max_training_samples = 50000
+        if len(y_sup_filtered) > max_training_samples:
+            print(f"Sampling {max_training_samples} from {len(y_sup_filtered)} samples to reduce memory usage")
+            indices = np.random.RandomState(42).choice(len(y_sup_filtered), max_training_samples, replace=False)
+            X_sup_proc = X_sup_proc[indices]
+            y_sup_filtered = y_sup_filtered[indices]
+
         label_encoder = LabelEncoder()
         y_enc = label_encoder.fit_transform(y_sup_filtered)
 
@@ -221,7 +229,7 @@ def train(json_file_or_dir, output_dir=None):
                 X_sup_proc, y_enc, test_size=0.2, random_state=42, stratify=y_enc
             )
 
-        base_clf = RandomForestClassifier(n_estimators=200, max_depth=18, n_jobs=-1, random_state=42, class_weight='balanced_subsample')
+        base_clf = RandomForestClassifier(n_estimators=100, max_depth=12, n_jobs=1, random_state=42, class_weight='balanced_subsample', max_features='sqrt')
         
         train_unique, train_counts = np.unique(y_train, return_counts=True)
         min_samples_per_class = train_counts.min()

@@ -66,8 +66,11 @@ export function DevicePredictionDevEUI() {
           const code = parts.length > 1 ? Number(parts[1]) : null
           if (code === 0) {
             setTrainingStatus("✅ Modèle entraîné avec succès!")
+          } else if (code === -9 || code === 9) {
+            setTrainingStatus("❌ Entraînement interrompu (mémoire insuffisante). Réduisez la taille des données ou augmentez la RAM.")
+            setError("Le processus a été tué par le système (code -9). Cela indique généralement un manque de mémoire.")
           } else {
-            setTrainingStatus(`Terminé avec code ${code}`)
+            setTrainingStatus(`❌ Terminé avec code ${code}`)
           }
           es.close()
           setIsTraining(false)
@@ -419,7 +422,7 @@ export function DevicePredictionDevEUI() {
             <div className="mt-4">
               <h4 className="font-semibold mb-2 text-blue-900">Sortie</h4>
               <pre className="bg-white text-sm text-gray-800 p-3 rounded-lg overflow-x-auto whitespace-pre-wrap">
-{JSON.stringify(predictionResult, null, 2)}
+                {JSON.stringify(predictionResult, null, 2)}
               </pre>
             </div>
           </div>
