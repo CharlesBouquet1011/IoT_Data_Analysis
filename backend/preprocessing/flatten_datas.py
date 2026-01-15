@@ -18,48 +18,67 @@ applatit le json en entrée et en crée un en sortie
 """
 
 
-import json
-import ijson
 import os
+import ijson
+import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
 from decimal import Decimal
-#comment ça la fonction ne traitait que le premier paquet de chaque timestamp ??
-def flatten_datas(file: str, output_path: str):
+
+def flatten_datas(file: str, output_dir: str, chunk_size=100_000):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(script_dir, file)
+    os.makedirs(output_dir, exist_ok=True)
+
     def convert_decimal(obj):
-        """Convertit récursivement les Decimal en float"""
         if isinstance(obj, Decimal):
             return float(obj)
-        elif isinstance(obj, dict):
-            return {k: convert_decimal(v) for k, v in obj.items()}
-        elif isinstance(obj, list):
-            return [convert_decimal(item) for item in obj]
         return obj
-    with open(file_path, "r", encoding="utf-8") as f, open(output_path, "w", encoding="utf-8") as out_f:
-        first = True
 
-        # On itère sur chaque élément du dictionnaire (clé = timestamp)
-        objects = ijson.kvitems(f, '')  # renvoie (clé, valeur)
-        for timestamp, packets in objects:
-            if not packets:
+    buffer = []
+    part = 0
+    parquet_writer = None
+
+    with open(file_path, "r", encoding="utf-8") as f:
+        objects = ijson.kvitems(f, "")
+
+        for _, packet in objects:
+            if not isinstance(packet, dict):
                 continue
-            # on prend le premier paquet pour simplifier (comme ton code actuel)
-            for p in packets:
 
-                flat = {}
-                for k, v in p.items():
-                    if k != "rxpk" and k != "stat":
-                        flat[k] = v
-                    elif k == "rxpk" and v:
-                        rx = v[0]
-                        for rk, rv in rx.items():
-                            flat[rk] = rv
-                    elif k == "stat" and v:
-                        for sk, sv in v.items():
-                            flat[sk] = sv
-                    else:
-                        flat[k] = None
-                flat = convert_decimal(flat)
+            flat = {}
 
-                json.dump(flat, out_f)
-                out_f.write("\n")
+            for k, v in packet.items():
+                if k == "rxpk" and isinstance(v, list) and v:
+                    for rk, rv in v[0].items():
+                        flat[rk] = convert_decimal(rv)
+                elif k == "stat" and isinstance(v, dict):
+                    for sk, sv in v.items():
+                        flat[sk] = convert_decimal(sv)
+                elif k not in ("rxpk", "stat"):
+                    flat[k] = convert_decimal(v)
+
+            buffer.append(flat)
+
+            if len(buffer) >= chunk_size:
+                df = pd.DataFrame(buffer)
+                table = pa.Table.from_pandas(df, preserve_index=False)
+
+                if parquet_writer is None:
+                    parquet_writer = pq.ParquetWriter(
+                        os.path.join(output_dir, "flat.parquet"),
+                        table.schema,
+                        compression="zstd"
+                    )
+
+                parquet_writer.write_table(table)
+                buffer.clear()
+
+        # flush final
+        if buffer:
+            df = pd.DataFrame(buffer)
+            table = pa.Table.from_pandas(df, preserve_index=False)
+            parquet_writer.write_table(table)
+
+        if parquet_writer:
+            parquet_writer.close()

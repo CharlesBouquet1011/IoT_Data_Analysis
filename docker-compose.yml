@@ -19,6 +19,15 @@ services:
       context: .
       target: backend
     image: backend:latest
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all  # ou "all" pour tous les GPU
+              capabilities: [gpu]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES= all   # ou all pour tous les GPU
     expose:
       - "8000"
     restart: unless-stopped

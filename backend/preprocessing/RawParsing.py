@@ -23,7 +23,7 @@ By Charles Bouquet
 """
 
 import base64
-import pandas as pd
+import dask_cudf
 def ADR(data:str)->bool:
     """
     Docstring for ADR
@@ -44,7 +44,7 @@ def ADR(data:str)->bool:
     #rq fctrl>>7 fonctionne aussi normalement
     return adr
 
-def addColAdr(df:pd.DataFrame)->pd.DataFrame:
+def addColAdr(df:dask_cudf.DataFrame)->dask_cudf.DataFrame:
     """
     Docstring for addColAdr
     
@@ -55,8 +55,22 @@ def addColAdr(df:pd.DataFrame)->pd.DataFrame:
 
     affecte la valeur de l'ADR à chaque paquet dans le dataframe
     """
-    df["adr"]=df["data"].apply(ADR)
-    
+    #calcul sur GPU, pas de apply, création de plein de colonnes à la place et calcul étape par étape
+    df = df.assign(
+        payload=df["data"].str.decode("base64")
+    )
+
+
+    df = df.assign(
+        fctrl=df["payload"].str.get_byte(5)  # 0-indexé
+    )
+
+    df = df.assign(
+        adr=(df["fctrl"] & 0b10000000) != 0
+    )
+
+    df = df.drop(columns=["payload", "fctrl"])
+
     return df
 
 if __name__=="__main__":

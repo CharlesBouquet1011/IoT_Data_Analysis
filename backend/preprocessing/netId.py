@@ -15,6 +15,7 @@
 Docstring for backend.preprocessing.netId
 a pour but d'identifier de quel opérateur provient un paquet
 """
+import dask_cudf
 import pandas as pd
 import os
 script_dir=os.path.dirname(os.path.abspath(__file__))
@@ -44,8 +45,7 @@ def splitPrefixLen(DevAddrPrefix:str):
 def shiftPrefix(Prefix,Longueur):
     return Prefix>>(32-Longueur)
 
-def addNwkOperator(df:pd.DataFrame)->pd.DataFrame:
-    df["NwkId"]=df["Dev_Add"].apply(nwkId)
+def addNwkOperator(df:dask_cudf.DataFrame)->dask_cudf.DataFrame:
     file=os.path.join(script_dir,"operateursLoraWan.csv")
     TableauOperateurs = pd.read_csv(file, sep=";", encoding="utf-8")
     # Utilise zip pour séparer les tuples correctement
@@ -53,11 +53,13 @@ def addNwkOperator(df:pd.DataFrame)->pd.DataFrame:
     TableauOperateurs["Prefix"] = result.apply(lambda x: x[0])
     TableauOperateurs["longueurPrefix"] = result.apply(lambda x: x[1]) 
     TableauOperateurs["comparaison"]=TableauOperateurs.apply(lambda ligne: ligne["Prefix"]>>(32-ligne["longueurPrefix"]),axis=1)
-    df["NwkId"] = pd.to_numeric(df["NwkId"], errors='coerce').astype('Int64') #conversion de la colonne problématique (quelques Dev_Addr sont vides)
+    mask = df["Dev_Add"].notnull()
+    df["NwkId"] = df["Dev_Add"].where(mask, 0).astype("str").str.zfill(8)
+    df["NwkId"] = df["NwkId"].str.slice(-8).apply(lambda x: int(x,16) >> 25).astype("Int64") #récupération du NwkId sur gpu (similaire à la fonction du dessus mais gpu friendly)
     #merge des tables pour associer mes clés (NwkId) aux Opérateurs
     df=df.merge(TableauOperateurs[["comparaison","Operator"]],"left",
                 left_on="NwkId",
                 right_on="comparaison")
-    df.drop("comparaison",inplace=True,errors="ignore")
-    df.drop("NwkId",inplace=True,errors="ignore")
+    df = df.drop(columns=["comparaison","NwkId"])
+
     return df

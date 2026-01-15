@@ -12,12 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM python:3.14.2-slim AS backend
-WORKDIR /app
-COPY ./backend /app
-EXPOSE 8000
 
-# Install system build dependencies needed by hdbscan
+FROM rapidsai/base:26.02a-cuda13-py3.11 AS backend
+# deja installés:
+# numpy
+# pandas
+# pyarrow
+# cudf
+# dask-cudf
+# cuml
+USER root
+
+# Installer Python
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     gcc \
@@ -25,7 +31,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir pandas xlsxwriter matplotlib numpy Pillow fastapi[standard] uvicorn scikit-learn cachetools hdbscan ijson
+# Créer des liens symboliques pour python (avec -f pour forcer)
+RUN ln -sf /usr/bin/python3 /usr/bin/python && \
+    ln -sf /usr/bin/pip3 /usr/bin/pip
+WORKDIR /app
+COPY ./backend /app
+EXPOSE 8000
+
+RUN pip install --no-cache-dir xlsxwriter matplotlib Pillow fastapi[standard] uvicorn scikit-learn cachetools hdbscan ijson
 
 RUN adduser --system --group python
 RUN chown -R python:python /app && chmod 755 -R /app
@@ -34,7 +47,8 @@ RUN mkdir -p /tmp/matplotlib-cache && chown -R python:python /tmp/matplotlib-cac
 
 # Définit la variable d'environnement pour matplotlib
 ENV MPLCONFIGDIR=/tmp/matplotlib-cache
-
+ENTRYPOINT [] 
+#reset l'entrypoint Rapids par défaut
 USER python
 CMD ["uvicorn", "server.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 #modifier la ligne pour un serveur http basique

@@ -27,9 +27,11 @@ import os
 import matplotlib
 matplotlib.use('Agg') #backend non interactif
 import matplotlib.pyplot as plt
+import dask_cudf
+
 #en forme de procédure pour la lisibilité
 
-def produce_dataset(df:pd.DataFrame,verbose:bool,undefined_toggle:bool,outlier_toggle:bool,duree,selected_attrs:list,fichier_sortie:str,Type:str):
+def produce_dataset(df:dask_cudf.DataFrame,verbose:bool,undefined_toggle:bool,outlier_toggle:bool,duree,selected_attrs:list,fichier_sortie:str,Type:str):
     """
     
 
@@ -47,37 +49,22 @@ def produce_dataset(df:pd.DataFrame,verbose:bool,undefined_toggle:bool,outlier_t
     
     if verbose: print(f"Selected attributes: {selected_attrs}") # VERBOSE affichage des attributs sélectionnés
     if undefined_toggle:
-        initial_count = len(df)
-        df.dropna(inplace=True,axis=0,subset=selected_attrs,how="any") #on veut trier uniquement sur les attributs renseignés
-        if verbose: 
-            message=f"{Type}: Removed {initial_count - len(df)} packets with undefined values from {initial_count} initial packets.\n it is {(initial_count-len(df))*100/initial_count} % \n\n"
-            print(f"durée = {duree}") # VERBOSE affichage du contenu de la variable durée
-            print(message) # VERBOSE affichage du nombre de paquets supprimés car attribut non défini
-            write_log_removed(message)
+        df=df.dropna(subset=selected_attrs) #on veut trier uniquement sur les attributs renseignés
     #on marque les entrées aberrantes puis on les supprimera dans un 2nd temps
     #sinon on pourrait supprimer des valeurs qui n'étaient pas si aberrantes que ça
     df["outlier"]=False
-    print(df.head)
-    print(f"Index name: {df.index.name}")
     if outlier_toggle:
         for attr in selected_attrs:
-            if pd.api.types.is_numeric_dtype(df[attr]):
+            if df[attr].dtype.kind in 'if': #if = int ou float, donc on vérifie qu'on a soit i soit f
                 #duree peut être soit une durée en temps "7d" soit un nombre de points
-                print("durée :",duree)
-                q1=df[attr].rolling(duree).quantile(0.25) #premier quartile  (fenêtre glissante)
-                q3=df[attr].rolling(duree).quantile(0.75)#dernier quartile (fenêtre glissante)
+                q1, q3 = df[attr].quantile([0.25, 0.75], interpolation="linear").compute() #plus de fenêtre glissante car pas possible sur GPU efficacement
                 IQRange=q3-q1   #écart interquartile
                 df["outlier"]=(df["outlier"]) | (df[attr]<=(q1-1.5*IQRange)) | (df[attr]>=(q3+1.5*IQRange)) 
         df=df[~ df["outlier"]]
         
-    if verbose: print(f"Remaining packets after processing: {len(df)}") # VERBOSE sauvegarde du dataset
-    df.reset_index(inplace=True)
-    df=addColAdr(df)
-    df=addNwkOperator(df) #le merge ici MODIFIE l'index
-    df.drop("outlier",axis=1,inplace=True)
-    print(f"Colonnes avant sauvegarde: {df.columns.tolist()}")
-    df.to_json(fichier_sortie, orient="records",lines=True) #il faudra readJson avec orient="index"
-    print("custom_dataset.json generated successfully.") # VERBOSE terminé !
+    df=df.drop("outlier",axis=1)
+    df.to_parquet(fichier_sortie, compression="zstd")    
+    print("custom_dataset.parquet generated successfully.") # VERBOSE terminé !
     return df #au cas où
 
 
@@ -119,7 +106,7 @@ def calcul_Gte_Lt(year:int,month:int):
 
 
 
-def sub_df_by_column(df:pd.DataFrame,column:str)->dict:
+def sub_df_by_column(df:dask_cudf.DataFrame,column:str)->dict:
     """
     Docstring for sub_df_by_column
     Renvoie les sous DataFrame du DataFrame filtré par valeur d'une colonne
@@ -132,8 +119,8 @@ def sub_df_by_column(df:pd.DataFrame,column:str)->dict:
     groupe=df.groupby(column)
     return {Cat:val for Cat, val in groupe}
 
-def split_df_by_month(df:pd.DataFrame):
-    dic={(int(year),int(month)): sub for (year,month),sub in df.groupby([df.index.year,df.index.month])}
+def split_df_by_month(df:dask_cudf.DataFrame):
+    dic={(int(year),int(month)): sub for (year,month),sub in df.groupby([df.year,df.index.month])}
     return dic
 
 def prepare_data(rolling_interval,attrList:list,file):
@@ -144,19 +131,26 @@ def prepare_data(rolling_interval,attrList:list,file):
     #file=download_data(gte,lt,year,month)
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
-    flat_output_path=os.path.join(script_dir,"flattened","flat.json")
+    flat_output_path=os.path.join(script_dir,"flattened","flat.parquet")
     os.makedirs(os.path.join(script_dir,"flattened"),exist_ok=True)
     flatten_datas(file,flat_output_path)
-    df=open_df_flattened(flat_output_path)
-    print(df.head)
-    for (year,month),monthlyDf in split_df_by_month(df).items():
+    df=dask_cudf.read_parquet(flat_output_path)
+    df=addColAdr(df)
+    df=addNwkOperator(df) #le merge ici MODIFIE l'index
+    # Créer des colonnes temporaires pour grouper par année/mois
+    df["_year"] = df["@timestamp"].dt.year
+    df["_month"] = df["@timestamp"].dt.month
+
+    # Groupby par année, mois et type
+    grouped = df.groupby(["_year", "_month", "Type"],split_out=2) #pour avoir 2 workers GPU et pas tout avoir en mémoire 
+
+    for (year, month, t), subDf in grouped:
+
+
         file=flat_output_path
-        
-        dfs=sub_df_by_column(monthlyDf,"Type")
-        for Type,subDf in dfs.items():
-            os.makedirs(os.path.join(script_dir,"Data",str(year),str(month)),exist_ok=True)
-            outputFile=os.path.join(script_dir,"Data",str(year),str(month),Type+".json")
-            produce_dataset(subDf,True,True,True,rolling_interval,attrList,outputFile,Type)
+        os.makedirs(os.path.join(script_dir,"Data",str(year),str(month)),exist_ok=True)
+        outputFile=os.path.join(script_dir,"Data",str(year),str(month),t+".parquet")
+        produce_dataset(subDf,True,True,True,rolling_interval,attrList,outputFile,t)
 
 def open_df_flattened(fichier:str)->pd.DataFrame:
     """
