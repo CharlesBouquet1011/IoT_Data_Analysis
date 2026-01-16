@@ -53,9 +53,11 @@ async def process_regression(data: RegressionRequest):
 
     images = {}
     image_paths = {
-        "rssi": results["images"].get("rssi_plot"),
-        "snr": results["images"].get("snr_plot"),
-        "residuals": results["images"].get("residual_plots")
+        "rssi_plot": results["images"].get("rssi_plot"),
+        "rssi_sf7_plot": results["images"].get("rssi_sf7_plot"),
+        "snr_plot": results["images"].get("snr_plot"),
+        "snr_sf7_plot": results["images"].get("snr_sf7_plot"),
+        "residual_plots": results["images"].get("residual_plots")
     }
     for key, path in image_paths.items():
         if not path or not os.path.exists(path):
@@ -69,9 +71,10 @@ async def process_regression(data: RegressionRequest):
 
     if not images:
         raise HTTPException(status_code=500, detail="Aucune image générée")
-
-    return {
+    
+    res = {
         "status": "ok",
         "images": images,
         "stats": results.get("stats", {})
     }
+    return res

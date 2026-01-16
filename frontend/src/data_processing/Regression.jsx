@@ -46,6 +46,7 @@ export function Regression() {
       }
 
       const data = await response.json()
+      console.log("Regression API response:", data)
       setResult(data)
     } catch (err) {
       setErreur(err.message)
@@ -102,10 +103,18 @@ export function Regression() {
           <div className="space-y-4">
             <h2 className="text-xl font-semibold text-black">RSSI</h2>
 
-            {images?.rssi && (
+            {images?.rssi_plot && (
               <img
-                src={images.rssi}
-                alt="RSSI plot"
+                src={images.rssi_plot}
+                alt="RSSI feature importance"
+                className="max-w-full rounded border"
+              />
+            )}
+
+            {images?.rssi_sf7_plot && (
+              <img
+                src={images.rssi_sf7_plot}
+                alt="RSSI feature importance (SF=7)"
                 className="max-w-full rounded border"
               />
             )}
@@ -128,10 +137,18 @@ export function Regression() {
           <div className="space-y-4">
             <h2 className="text-xl font-semibold text-black">SNR</h2>
 
-            {images?.snr && (
+            {images?.snr_plot && (
               <img
-                src={images.snr}
-                alt="SNR plot"
+                src={images.snr_plot}
+                alt="SNR feature importance"
+                className="max-w-full rounded border"
+              />
+            )}
+
+            {images?.snr_sf7_plot && (
+              <img
+                src={images.snr_sf7_plot}
+                alt="SNR feature importance (SF=7)"
                 className="max-w-full rounded border"
               />
             )}
@@ -154,9 +171,9 @@ export function Regression() {
           <div className="space-y-4">
             <h2 className="text-xl font-semibold text-black">Residuals</h2>
 
-            {images?.residuals && (
+            {images?.residual_plots && (
               <img
-                src={images.residuals}
+                src={images.residual_plots}
                 alt="Residual plots"
                 className="max-w-full rounded border"
               />

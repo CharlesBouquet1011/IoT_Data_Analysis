@@ -77,9 +77,9 @@ def run_signal_models(
     df = Choose_Open(year, month, (data_type,))
 
     # TIME FEATURES
-    df["timestamp"] = pd.to_datetime(df.index)
-    df["hour"] = df["timestamp"].dt.hour
-    df["weekday"] = df["timestamp"].dt.weekday
+    df["time"] = pd.to_datetime(df.index)
+    df["hour"] = df["time"].dt.hour
+    df["weekday"] = df["time"].dt.weekday
 
     # PAIR COUNTS
     df_temp = df.dropna(subset=['rssi'])
@@ -91,6 +91,10 @@ def run_signal_models(
 
     # RSSI MODEL
     df_rssi = df[df["rssi"].notna()].copy()
+
+    # RSSI MODEL FOR FIXED SF=7
+    df_rssi_sf7 = df_rssi[df_rssi["SF"] == 7].copy()
+    print(f"Number of SF=7 packets: {len(df_rssi_sf7)}")
 
     devs = df_rssi["Dev_Add"].unique()
     train_devs, test_devs = train_test_split(devs, test_size=0.2, random_state=42)
@@ -164,6 +168,9 @@ def run_signal_models(
     # SNR MODEL
     df_snr = df[df["lsnr"].notna()].copy()
 
+    # RSSI MODEL FOR FIXED SF=7
+    df_snr_sf7 = df_snr[df_snr["SF"] == 7].copy()
+
     devs = df_snr["Dev_Add"].unique()
     train_devs, test_devs = train_test_split(devs, test_size=0.2, random_state=42)
 
@@ -235,12 +242,90 @@ def run_signal_models(
     rssi_plot_path = plot_feature_importance(model_rssi, X_test, y_test_rssi.values, "RSSI", _make_default_filename("feature_importance_rssi"), images_dir)
     snr_plot_path = plot_feature_importance(model_snr, X_test, y_test_snr.values, "SNR", _make_default_filename("feature_importance_snr"), images_dir)
 
+    if not df_rssi_sf7.empty:
+        devs_sf7 = df_rssi_sf7["Dev_Add"].unique()
+        train_devs_sf7, test_devs_sf7 = train_test_split(devs_sf7, test_size=0.2, random_state=42)
+
+        train_mask_sf7 = df_rssi_sf7["Dev_Add"].isin(train_devs_sf7)
+        test_mask_sf7 = df_rssi_sf7["Dev_Add"].isin(test_devs_sf7)
+
+        df_train_sf7 = df_rssi_sf7.loc[train_mask_sf7]
+        df_test_sf7 = df_rssi_sf7.loc[test_mask_sf7]
+
+        X_train_sf7 = df_train_sf7[num_features + cat_features]
+        X_test_sf7 = df_test_sf7[num_features + cat_features]
+        y_train_sf7 = df_train_sf7["rssi"]
+        y_test_sf7 = df_test_sf7["rssi"]
+
+        model_rssi_sf7 = Pipeline([
+            ("prep", preprocessor),
+            ("gbm", HistGradientBoostingRegressor(
+                max_depth=10,
+                learning_rate=0.1,
+                max_iter=500,
+                min_samples_leaf=20,
+                l2_regularization=1.0,
+                random_state=42
+            ))
+        ])
+
+        print("\nTraining RSSI model (SF=7)")
+        model_rssi_sf7.fit(X_train_sf7, y_train_sf7)
+
+        rssi_sf7_plot_path = plot_feature_importance(model_rssi_sf7, X_test_sf7, y_test_sf7.values, "RSSI (SF=7)", _make_default_filename("feature_importance_rssi_sf7"), images_dir)
+    else:
+        rssi_sf7_plot_path = None
+    
+    if not df_snr_sf7.empty:
+        devs_snr_sf7 = df_snr_sf7["Dev_Add"].unique()
+        train_devs_snr_sf7, test_devs_snr_sf7 = train_test_split(devs_snr_sf7, test_size=0.2, random_state=42)
+    
+        train_mask_snr_sf7 = df_snr_sf7["Dev_Add"].isin(train_devs_snr_sf7)
+        test_mask_snr_sf7 = df_snr_sf7["Dev_Add"].isin(test_devs_snr_sf7)
+
+        df_train_snr_sf7 = df_snr_sf7.loc[train_mask_snr_sf7]
+        df_test_snr_sf7 = df_snr_sf7.loc[test_mask_snr_sf7]
+
+        X_train_snr_sf7 = df_train_snr_sf7[num_features + cat_features]
+        X_test_snr_sf7 = df_test_snr_sf7[num_features + cat_features]
+        y_train_snr_sf7 = df_train_snr_sf7["lsnr"]
+        y_test_snr_sf7 = df_test_snr_sf7["lsnr"]
+
+        model_snr_sf7 = Pipeline([
+            ("prep", preprocessor),
+            ("gbm", HistGradientBoostingRegressor(
+                max_depth=10,
+                learning_rate=0.1,
+                max_iter=500,
+                min_samples_leaf=20,
+                l2_regularization=1.0,
+                random_state=42
+            ))
+        ])
+
+        print("\nTraining SNR model (SF=7)")
+        model_snr_sf7.fit(X_train_snr_sf7, y_train_snr_sf7)
+
+        snr_sf7_plot_path = plot_feature_importance(model_snr_sf7, X_test_snr_sf7, y_test_snr_sf7.values, "SNR (SF=7)", _make_default_filename("feature_importance_snr_sf7"), images_dir)
+    else:
+        snr_sf7_plot_path = None
+
+
+
+
     # RESIDUAL PLOTS
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
     # RSSI residuals
     residuals_rssi = y_test_rssi.values - y_pred_rssi
     residuals_snr = y_test_snr.values - y_pred_snr
+
+    # Shared Y-axis limits (residuals)
+    all_residuals = np.concatenate([residuals_rssi, residuals_snr])
+    y_lim = np.max(np.abs(all_residuals))
+
+    for ax in axes:
+        ax.set_ylim(-y_lim, y_lim)
 
     axes[0].scatter(y_pred_rssi, residuals_rssi, alpha=0.3, s=10)
     axes[0].axhline(0, color='red', linestyle='--', linewidth=2)
@@ -265,7 +350,9 @@ def run_signal_models(
     return {
         "images": {
             "rssi_plot": rssi_plot_path,
+            "rssi_sf7_plot": rssi_sf7_plot_path,
             "snr_plot": snr_plot_path,
+            "snr_sf7_plot": snr_sf7_plot_path,
             "residual_plots": residuals_path
         },
         "stats": {
