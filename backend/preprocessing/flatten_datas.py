@@ -1,3 +1,4 @@
+
 # Copyright 2025 Titouan Verdier, Charles Bouquet
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,24 +19,28 @@ applatit le json en entrée et en crée un en sortie
 """
 
 
-import json
-import ijson
 import os
+import ijson
+import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
 from decimal import Decimal
-#comment ça la fonction ne traitait que le premier paquet de chaque timestamp ??
-def flatten_datas(file: str, output_path: str):
+def flatten_datas(file: str, output_dir: str, chunk_size=100_000):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(script_dir, file)
+    os.makedirs(output_dir, exist_ok=True)
+
     def convert_decimal(obj):
-        """Convertit récursivement les Decimal en float"""
         if isinstance(obj, Decimal):
             return float(obj)
-        elif isinstance(obj, dict):
-            return {k: convert_decimal(v) for k, v in obj.items()}
-        elif isinstance(obj, list):
-            return [convert_decimal(item) for item in obj]
         return obj
-    with open(file_path, "r", encoding="utf-8") as f, open(output_path, "w", encoding="utf-8") as out_f:
+
+    buffer = []
+    part = 0
+    parquet_writer = None
+    columns_order = None  # pour forcer l'ordre des colonnes
+
+    with open(file_path, "r", encoding="utf-8") as f:
         objects = ijson.kvitems(f, "")
 
         for _, packet in objects:
@@ -52,8 +57,45 @@ def flatten_datas(file: str, output_path: str):
                         flat[sk] = convert_decimal(sv)
                 elif k not in ("rxpk", "stat"):
                     flat[k] = convert_decimal(v)
-                
-                flat = convert_decimal(flat)
+            
 
-            json.dump(flat, out_f)
-            out_f.write("\n")
+            buffer.append(flat)
+
+            if len(buffer) >= chunk_size:
+                df = pd.DataFrame(buffer)
+
+                # initialiser l'ordre des colonnes
+                if columns_order is None:
+                    columns_order = df.columns.tolist()
+
+                # réordonner et ajouter les colonnes manquantes
+                for col in columns_order:
+                    if col not in df.columns:
+                        df[col] = None
+                df = df[columns_order]
+
+                table = pa.Table.from_pandas(df, preserve_index=False)
+
+                if parquet_writer is None:
+                    parquet_writer = pq.ParquetWriter(
+                        os.path.join(output_dir, "flat.parquet"),
+                        table.schema,
+                        compression="zstd"
+                    )
+
+                parquet_writer.write_table(table)
+                buffer.clear()
+
+        # flush final
+        if buffer:
+            df = pd.DataFrame(buffer)
+            for col in columns_order:
+                if col not in df.columns:
+                    df[col] = None
+            df = df[columns_order]
+
+            table = pa.Table.from_pandas(df, preserve_index=False)
+            parquet_writer.write_table(table)
+
+        if parquet_writer:
+            parquet_writer.close()

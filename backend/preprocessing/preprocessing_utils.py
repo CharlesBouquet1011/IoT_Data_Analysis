@@ -144,10 +144,10 @@ def prepare_data(rolling_interval,attrList:list,file):
     #file=download_data(gte,lt,year,month)
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
-    flat_output_path=os.path.join(script_dir,"flattened","flat.json")
+    flat_output_path=os.path.join(script_dir,"flattened","flat.parquet")
     os.makedirs(os.path.join(script_dir,"flattened"),exist_ok=True)
     flatten_datas(file,flat_output_path)
-    df=open_df_flattened(flat_output_path)
+    df=pd.read_parquet(flat_output_path)
     print(df.head)
     for (year,month),monthlyDf in split_df_by_month(df).items():
         file=flat_output_path
