@@ -36,30 +36,24 @@ def flatten_datas(file: str, output_path: str):
             return [convert_decimal(item) for item in obj]
         return obj
     with open(file_path, "r", encoding="utf-8") as f, open(output_path, "w", encoding="utf-8") as out_f:
-        first = True
+        objects = ijson.kvitems(f, "")
 
-        # On itère sur chaque élément du dictionnaire (clé = timestamp)
-        objects = ijson.kvitems(f, '')  # renvoie (clé, valeur)
-        for timestamp, packets in objects:
-            if not packets:
+        for _, packet in objects:
+            if not isinstance(packet, dict):
                 continue
-            # on prend le premier paquet pour simplifier (comme ton code actuel)
-            for p in packets:
 
-                flat = {}
-                for k, v in p.items():
-                    if k != "rxpk" and k != "stat":
-                        flat[k] = v
-                    elif k == "rxpk" and v:
-                        rx = v[0]
-                        for rk, rv in rx.items():
-                            flat[rk] = rv
-                    elif k == "stat" and v:
-                        for sk, sv in v.items():
-                            flat[sk] = sv
-                    else:
-                        flat[k] = None
+            flat = {}
+            for k, v in packet.items():
+                if k == "rxpk" and isinstance(v, list) and v:
+                    for rk, rv in v[0].items():
+                        flat[rk] = convert_decimal(rv)
+                elif k == "stat" and isinstance(v, dict):
+                    for sk, sv in v.items():
+                        flat[sk] = convert_decimal(sv)
+                elif k not in ("rxpk", "stat"):
+                    flat[k] = convert_decimal(v)
+                
                 flat = convert_decimal(flat)
 
-                json.dump(flat, out_f)
-                out_f.write("\n")
+            json.dump(flat, out_f)
+            out_f.write("\n")
