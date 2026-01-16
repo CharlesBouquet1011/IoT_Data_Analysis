@@ -28,7 +28,6 @@ from decimal import Decimal
 def flatten_datas(file: str, output_dir: str, chunk_size=100_000):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(script_dir, file)
-    os.makedirs(output_dir, exist_ok=True)
 
     def convert_decimal(obj):
         if isinstance(obj, Decimal):
