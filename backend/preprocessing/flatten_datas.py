@@ -24,7 +24,7 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 from decimal import Decimal
-
+import base64
 def flatten_datas(file: str, output_dir: str, chunk_size=100_000):
     script_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(script_dir, file)
@@ -38,6 +38,7 @@ def flatten_datas(file: str, output_dir: str, chunk_size=100_000):
     buffer = []
     part = 0
     parquet_writer = None
+    columns_order = None  # pour forcer l'ordre des colonnes
 
     with open(file_path, "r", encoding="utf-8") as f:
         objects = ijson.kvitems(f, "")
@@ -47,7 +48,6 @@ def flatten_datas(file: str, output_dir: str, chunk_size=100_000):
                 continue
 
             flat = {}
-
             for k, v in packet.items():
                 if k == "rxpk" and isinstance(v, list) and v:
                     for rk, rv in v[0].items():
@@ -57,11 +57,25 @@ def flatten_datas(file: str, output_dir: str, chunk_size=100_000):
                         flat[sk] = convert_decimal(sv)
                 elif k not in ("rxpk", "stat"):
                     flat[k] = convert_decimal(v)
+                if k == "data" and isinstance(v, str):
+                    flat[k] = base64.b64decode(v)
+            
 
             buffer.append(flat)
 
             if len(buffer) >= chunk_size:
                 df = pd.DataFrame(buffer)
+
+                # initialiser l'ordre des colonnes
+                if columns_order is None:
+                    columns_order = df.columns.tolist()
+
+                # réordonner et ajouter les colonnes manquantes
+                for col in columns_order:
+                    if col not in df.columns:
+                        df[col] = None
+                df = df[columns_order]
+
                 table = pa.Table.from_pandas(df, preserve_index=False)
 
                 if parquet_writer is None:
@@ -77,6 +91,11 @@ def flatten_datas(file: str, output_dir: str, chunk_size=100_000):
         # flush final
         if buffer:
             df = pd.DataFrame(buffer)
+            for col in columns_order:
+                if col not in df.columns:
+                    df[col] = None
+            df = df[columns_order]
+
             table = pa.Table.from_pandas(df, preserve_index=False)
             parquet_writer.write_table(table)
 

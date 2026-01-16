@@ -31,7 +31,7 @@ services:
     expose:
       - "8000"
     restart: unless-stopped
-    user: python
+    user: root
     volumes:
       - ./backend:/app
       - python_images:/app/Images 
@@ -88,6 +88,7 @@ services:
         mkdir -p /app/Images &&
         chmod -R 777 /app/Images &&
         chmod -R 777 /app/build
+        chmod -R 777 /app/preprocessing
       "
 
 

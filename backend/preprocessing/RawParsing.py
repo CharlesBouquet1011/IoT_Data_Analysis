@@ -23,8 +23,10 @@ By Charles Bouquet
 """
 
 import base64
+import pandas as pd
+import cudf
 import dask_cudf
-def ADR(data:str)->bool:
+def ADR(dataSeries:pd.Series)->pd.Series:
     """
     Docstring for ADR
     
@@ -36,40 +38,44 @@ def ADR(data:str)->bool:
     Renvoie True si l'ADR est set, False sinon
     """
     #on récupère la data dans la partie data de rxpk
-    payload=base64.b64decode(data)
-    fctrl=payload[5] #selon la doc, le fctrl est le 5e octet de la payload cf page 17 de lorawan 1.0.3
+    
+    fctrl=dataSeries.apply(lambda x: x[5]) #selon la doc, le fctrl est le 5e octet de la payload cf page 17 de lorawan 1.0.3
     #toujours selon la doc: dernier bit= ADDR donc on doit supprimer tous les autres
     filtre=0b10000000
     adr=(fctrl & filtre)!=0 #si le 7e bit (1er bit de poids fort donc) est 1, ça fait true, sinon false
     #rq fctrl>>7 fonctionne aussi normalement
-    return adr
+    return adr.astype("bool")
 
 def addColAdr(df:dask_cudf.DataFrame)->dask_cudf.DataFrame:
     """
     Docstring for addColAdr
     
     :param df: Dataframe auquel on veut ajouter la colonne ADR
-    :type df: pd.DataFrame
+    :type df: dask_cudf.DataFrame
     :return: Dataframe avec la colonne ADR
-    :rtype: DataFrame
+    :rtype: dask_cudf.DataFrame
 
     affecte la valeur de l'ADR à chaque paquet dans le dataframe
     """
-    #calcul sur GPU, pas de apply, création de plein de colonnes à la place et calcul étape par étape
+    
+    def extract_adr(partition):
+        """Extrait l'ADR de chaque ligne de la partition"""
+        def get_adr_from_data(data_str):
+            if pd.isna(data_str) or len(data_str) < 6:
+                return False
+            # Le 6ème caractère (index 5) contient le fctrl
+            fctrl = ord(data_str[5])
+            # Le bit ADR est le bit de poids fort
+            return (fctrl & 0b10000000) != 0
+        
+        return partition["data"].apply(get_adr_from_data)
+    
     df = df.assign(
-        payload=df["data"].str.decode("base64")
+        adr=df.map_partitions(
+            extract_adr,
+            meta=('adr', 'bool')
+        )
     )
-
-
-    df = df.assign(
-        fctrl=df["payload"].str.get_byte(5)  # 0-indexé
-    )
-
-    df = df.assign(
-        adr=(df["fctrl"] & 0b10000000) != 0
-    )
-
-    df = df.drop(columns=["payload", "fctrl"])
 
     return df
 

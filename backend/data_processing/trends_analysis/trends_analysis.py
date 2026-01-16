@@ -91,7 +91,7 @@ def plotTimeSerie(df:pd.DataFrame,freq:str="D",hop_interval:str="weeks",hop_valu
             plt.xlabel("Date")
             nom=f"Nombre de paquets par {nom_freq.get(freq)} a partir de {start.strftime(date_format)} a {end.strftime(date_format)}"
             plt.title(nom)
-            plot_file=os.path.join(plot_dir,f"{nom.replace(" ","-")}.webp")
+            plot_file=os.path.join(plot_dir,f"{nom.replace(' ','-')}.webp")
             plt.savefig(plot_file)
             plt.close()
             files[nom]=plot_file #j'enregistre le chemin du fichier dans un dictionnaire

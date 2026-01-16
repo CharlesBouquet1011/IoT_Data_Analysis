@@ -28,6 +28,7 @@ import matplotlib
 matplotlib.use('Agg') #backend non interactif
 import matplotlib.pyplot as plt
 import dask_cudf
+import cudf
 
 #en forme de procédure pour la lisibilité
 
@@ -135,19 +136,72 @@ def prepare_data(rolling_interval,attrList:list,file):
     os.makedirs(os.path.join(script_dir,"flattened"),exist_ok=True)
     flatten_datas(file,flat_output_path)
     df=dask_cudf.read_parquet(flat_output_path)
-    df=addColAdr(df)
+     # TEST 1 : Est-ce que le parquet se lit correctement ?
+    print("=== TEST LECTURE PARQUET ===")
+    try:
+        test = df.head(1).compute()
+        print("Lecture parquet: OK")
+        print(f"Index type: {test.index.dtype}")
+    except Exception as e:
+        print(f"Lecture parquet: ERREUR - {e}")
+    print("============================")
+    df=df.reset_index(drop=True)
+    print("=== TEST LECTURE PARQUET ===")
+    try:
+        test = df.head(1).compute()
+        print("reset index: OK")
+        print(f"Index type: {test.index.dtype}")
+    except Exception as e:
+        print(f"Reset Index: ERREUR - {e}")
+    print("============================")
+    if df["@timestamp"].dtype == 'object' or df["@timestamp"].dtype == 'string':
+        df["@timestamp"] = df["@timestamp"].map_partitions(
+            cudf.to_datetime,
+            meta=('timestamp', 'datetime64[ns]')
+        )
     df=addNwkOperator(df) #le merge ici MODIFIE l'index
+     # TEST 1 : Est-ce que le parquet se lit correctement ?
+    print("=== TEST LECTURE PARQUET ===")
+    try:
+        test = df.head(1).compute()
+        print("nwk operatort: OK")
+        print(f"Index type: {test.index.dtype}")
+    except Exception as e:
+        print(f"nwk operator: ERREUR - {e}")
+    print("============================")
+    df=addColAdr(df)
+     # DEBUG : afficher les types de TOUTES les colonnes
+    print("=== TYPES DE COLONNES ===")
+    for col in df.columns:
+        print(f"{col}: {df[col].dtype}")
+    print("=========================")
+    print("=== TEST COMPUTE PAR COLONNE ===")
+    for col in df.columns:
+        try:
+            result = df[col].head(1).compute()
+            print(f"{col}: OK")
+        except Exception as e:
+            print(f"{col}: ERREUR - {str(e)[:100]}")
+    print("================================")
     # Créer des colonnes temporaires pour grouper par année/mois
-    df["_year"] = df["@timestamp"].dt.year
-    df["_month"] = df["@timestamp"].dt.month
+    df["_year"] = df["@timestamp"].dt.year.astype('int64')
+    df["_month"] = df["@timestamp"].dt.month.astype('int64')
 
-    # Groupby par année, mois et type
-    grouped = df.groupby(["_year", "_month", "Type"],split_out=2) #pour avoir 2 workers GPU et pas tout avoir en mémoire 
-
-    for (year, month, t), subDf in grouped:
-
-
-        file=flat_output_path
+    # Récupérer juste les combinaisons qui existent réellement en persitant le df
+    df_persisted = df.persist()  # Garde le df en mémoire GPU
+    
+    # Utiliser to_pandas directement pour éviter les problèmes de type cudf
+    unique_combos = df_persisted[["_year", "_month", "Type"]].drop_duplicates().compute().to_pandas()
+    
+    # Itérer sur les combinaisons réelles
+    for _, row in unique_combos.iterrows():
+        year, month, t = int(row["_year"]), int(row["_month"]), str(row["Type"])
+        
+        # Filtrer le dataframe pour cette combinaison
+        subDf = df_persisted[(df_persisted["_year"] == year) & 
+                             (df_persisted["_month"] == month) & 
+                             (df_persisted["Type"] == t)]
+        
         os.makedirs(os.path.join(script_dir,"Data",str(year),str(month)),exist_ok=True)
         outputFile=os.path.join(script_dir,"Data",str(year),str(month),t+".parquet")
         produce_dataset(subDf,True,True,True,rolling_interval,attrList,outputFile,t)

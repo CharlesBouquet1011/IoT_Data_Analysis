@@ -136,7 +136,7 @@ def RepartitionCaracteristiqueParCategorie(caracteristique:str,alias:str,annee:i
         ul=set(["Confirmed Data Up","Join Request","Unconfirmed Data Up"])
         dl=set(["Confirmed Data Down","Join Accept","Unconfirmed Data Down"])
         #{nomImage:cheminImage}
-        plot_file=os.path.join(plot_dir,f"Proportion_Paquets_{alias.replace("/","-")}={str(valeurCaracteristique).replace("/","-")}.webp")
+        plot_file=os.path.join(plot_dir,f"Proportion_Paquets_{alias.replace('/','-')}={str(valeurCaracteristique).replace('/','-')}.webp")
         [_proportionCaraCat(caracteristique,valeurCaracteristique,alias,annee,mois,categorie,repartitions) for categorie in categories] #plots 
         df=pd.DataFrame(repartitions).set_index("categorie")
         couleurs=["skyblue" if cat in ul else "salmon" if cat in dl else "grey" for cat in df.index.str.strip()]
@@ -152,7 +152,7 @@ def RepartitionCaracteristiqueParCategorie(caracteristique:str,alias:str,annee:i
         plot_files[f"Proportion_{caracteristique}={valeurCaracteristique}"]=plot_file
         plt.close()
         repartitions=[]
-        plot_file=os.path.join(plot_dir,f"Repartition_Type_Paquets_{alias.replace("/","-")}={str(valeurCaracteristique).replace("/","-")}.webp")
+        plot_file=os.path.join(plot_dir,f"Repartition_Type_Paquets_{alias.replace('/','-')}={str(valeurCaracteristique).replace('/','-')}.webp")
         [_RepartitionCaraCat(caracteristique,valeurCaracteristique,alias,annee,mois,categorie,repartitions) for categorie in categories] #plots
         df=pd.DataFrame(repartitions).set_index("categorie")
         couleurs=["skyblue" if cat in ul else "salmon" if cat in dl else "grey" for cat in df.index.str.strip()]

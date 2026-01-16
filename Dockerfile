@@ -21,9 +21,12 @@ FROM rapidsai/base:26.02a-cuda13-py3.11 AS backend
 # cudf
 # dask-cudf
 # cuml
+
 USER root
 
-# Installer Python
+WORKDIR /app
+
+# Installer les dépendances système
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     gcc \
@@ -31,26 +34,37 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Créer des liens symboliques pour python (avec -f pour forcer)
-RUN ln -sf /usr/bin/python3 /usr/bin/python && \
-    ln -sf /usr/bin/pip3 /usr/bin/pip
-WORKDIR /app
+# Installer les packages Python manquants
+RUN pip install --no-cache-dir \
+    xlsxwriter \
+    matplotlib \
+    Pillow \
+    fastapi[standard] \
+    uvicorn \
+    scikit-learn \
+    cachetools \
+    hdbscan \
+    ijson
+
+# Créer le dossier de cache matplotlib
+RUN mkdir -p /tmp/matplotlib-cache && \
+    chown -R rapids:conda /tmp/matplotlib-cache
+
+# Copier le code et donner les permissions à l'utilisateur rapids
 COPY ./backend /app
+RUN chown -R rapids:conda /app && chmod 755 -R /app
+
+# Variables d'environnement
+ENV MPLCONFIGDIR=/tmp/matplotlib-cache
+
 EXPOSE 8000
 
-RUN pip install --no-cache-dir xlsxwriter matplotlib Pillow fastapi[standard] uvicorn scikit-learn cachetools hdbscan ijson
+# Utiliser l'utilisateur rapids (existant dans l'image)
+USER rapids
 
-RUN adduser --system --group python
-RUN chown -R python:python /app && chmod 755 -R /app
-# Crée un dossier de cache pour matplotlib et donne les droits à l'utilisateur python
-RUN mkdir -p /tmp/matplotlib-cache && chown -R python:python /tmp/matplotlib-cache
-
-# Définit la variable d'environnement pour matplotlib
-ENV MPLCONFIGDIR=/tmp/matplotlib-cache
-ENTRYPOINT [] 
-#reset l'entrypoint Rapids par défaut
-USER python
+# L'entrypoint RAPIDS est conservé, on modifie juste la commande
 CMD ["uvicorn", "server.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
 #modifier la ligne pour un serveur http basique
 FROM nginx:1.29.4-alpine AS server
 

@@ -37,7 +37,7 @@ def Repartition_ADR_Dans_Categorie(annee:int|None=None,mois:int|None=None):
         repartitions=[]
         ul=set(["Confirmed Data Up","Join Request","Unconfirmed Data Up"])
         dl=set(["Confirmed Data Down","Join Accept","Unconfirmed Data Down"])
-        plot_file=os.path.join(plot_dir,f"Repartition_Type_Paquets_ADR={str(valeurCaracteristique).replace("/","-")}.webp")
+        plot_file=os.path.join(plot_dir,f"Repartition_Type_Paquets_ADR={str(valeurCaracteristique).replace('/','-')}.webp")
         [_RepartitionCaraCat(caracteristique,valeurCaracteristique,alias,annee,mois,categorie,repartitions) for categorie in categories] #plots
         df=pd.DataFrame(repartitions).set_index("categorie")
         couleurs=["skyblue" if cat in ul else "salmon" if cat in dl else "grey" for cat in df.index.str.strip()]

@@ -18,6 +18,7 @@ a pour but d'identifier de quel opérateur provient un paquet
 import dask_cudf
 import pandas as pd
 import os
+import cudf
 script_dir=os.path.dirname(os.path.abspath(__file__))
 def nwkId(DevAdd)->int:
     """
@@ -45,21 +46,49 @@ def splitPrefixLen(DevAddrPrefix:str):
 def shiftPrefix(Prefix,Longueur):
     return Prefix>>(32-Longueur)
 
-def addNwkOperator(df:dask_cudf.DataFrame)->dask_cudf.DataFrame:
-    file=os.path.join(script_dir,"operateursLoraWan.csv")
-    TableauOperateurs = pd.read_csv(file, sep=";", encoding="utf-8")
-    # Utilise zip pour séparer les tuples correctement
-    result = TableauOperateurs["DevAddr Prefix"].apply(splitPrefixLen)#je dois faire une série de tuples
-    TableauOperateurs["Prefix"] = result.apply(lambda x: x[0])
-    TableauOperateurs["longueurPrefix"] = result.apply(lambda x: x[1]) 
-    TableauOperateurs["comparaison"]=TableauOperateurs.apply(lambda ligne: ligne["Prefix"]>>(32-ligne["longueurPrefix"]),axis=1)
-    mask = df["Dev_Add"].notnull()
-    df["NwkId"] = df["Dev_Add"].where(mask, 0).astype("str").str.zfill(8)
-    df["NwkId"] = df["NwkId"].str.slice(-8).apply(lambda x: int(x,16) >> 25).astype("Int64") #récupération du NwkId sur gpu (similaire à la fonction du dessus mais gpu friendly)
-    #merge des tables pour associer mes clés (NwkId) aux Opérateurs
-    df=df.merge(TableauOperateurs[["comparaison","Operator"]],"left",
-                left_on="NwkId",
-                right_on="comparaison")
-    df = df.drop(columns=["comparaison","NwkId"])
+def addNwkOperator(df: dask_cudf.DataFrame) -> dask_cudf.DataFrame:
+    file = os.path.join(script_dir, "operateursLoraWan.csv")
+
+    # Lecture opérateurs (CPU → GPU)
+    ops = pd.read_csv(file, sep=";", encoding="utf-8")
+
+    def splitPrefixLen(x):
+        prefix, length = x.strip().split("/")
+        return int(prefix, 16), int(length)
+
+    tmp = ops["DevAddr Prefix"].apply(splitPrefixLen)
+    ops["Prefix"] = tmp.apply(lambda x: x[0])
+    ops["Length"] = tmp.apply(lambda x: x[1])
+    ops["comparaison"] = ops["Prefix"] >> (32 - ops["Length"])
+
+    ops_gpu = cudf.from_pandas(ops[["comparaison", "Operator"]])
+
+    # ============================
+    # 🔥 CORRECTION MAJEURE ICI 🔥
+    # ============================
+
+    # Dev_Add est HEX -> conversion propre
+    devaddr_int = (
+        df["Dev_Add"]
+        .astype("str")
+        .str.zfill(8)
+        .str.slice(0, 8)
+        .str.hex_to_int()
+    )
+
+    # Network ID = 7 MSB (>> 25)
+    df["NwkId"] = (devaddr_int // (2**25)).astype("Int64")
+
+    # Merge opérateur
+    df = df.merge(
+        ops_gpu,
+        how="left",
+        left_on="NwkId",
+        right_on="comparaison"
+    )
+
+    # Nettoyage
+    df = df.drop(columns=["comparaison", "NwkId"])
+    df = df.reset_index(drop=True)
 
     return df
