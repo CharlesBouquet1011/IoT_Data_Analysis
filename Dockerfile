@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir pandas xlsxwriter matplotlib numpy Pillow fastapi[standard] uvicorn scikit-learn cachetools hdbscan ijson
+RUN pip install --no-cache-dir pandas xlsxwriter matplotlib numpy Pillow fastapi[standard] uvicorn scikit-learn cachetools hdbscan ijson pyarrow
 
 RUN adduser --system --group python
 RUN chown -R python:python /app && chmod 755 -R /app
