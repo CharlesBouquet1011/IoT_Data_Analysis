@@ -80,7 +80,14 @@ services:
         chmod -R 777 /app/Images &&
         chmod -R 777 /app/build
       "
-
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: app_db
+    ports:
+      - "5432:5432"
 
 
 volumes:
