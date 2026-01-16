@@ -78,7 +78,7 @@ def flatten_datas(file: str, output_dir: str, chunk_size=100_000):
 
                 if parquet_writer is None:
                     parquet_writer = pq.ParquetWriter(
-                        os.path.join(output_dir, "flat.parquet"),
+                        output_dir,
                         table.schema,
                         compression="zstd"
                     )
@@ -102,7 +102,7 @@ def flatten_datas(file: str, output_dir: str, chunk_size=100_000):
             table = pa.Table.from_pandas(df, preserve_index=False)
             if parquet_writer is None:
                     parquet_writer = pq.ParquetWriter(
-                        os.path.join(output_dir, "flat.parquet"),
+                        output_dir,
                         table.schema,
                         compression="zstd"
                     )
