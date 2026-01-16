@@ -100,6 +100,12 @@ def flatten_datas(file: str, output_dir: str, chunk_size=100_000):
             df = df[columns_order]
 
             table = pa.Table.from_pandas(df, preserve_index=False)
+            if parquet_writer is None:
+                    parquet_writer = pq.ParquetWriter(
+                        os.path.join(output_dir, "flat.parquet"),
+                        table.schema,
+                        compression="zstd"
+                    )
             parquet_writer.write_table(table)
 
         if parquet_writer:

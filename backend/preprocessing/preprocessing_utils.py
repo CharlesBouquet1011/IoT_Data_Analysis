@@ -148,6 +148,8 @@ def prepare_data(rolling_interval,attrList:list,file):
     os.makedirs(os.path.join(script_dir,"flattened"),exist_ok=True)
     flatten_datas(file,flat_output_path)
     df=pd.read_parquet(flat_output_path)
+    df["@timestamp"]=pd.to_datetime(df["@timestamp"],errors="coerce",utc=True)
+    df.set_index("@timestamp",inplace=True)
     for (year,month),monthlyDf in split_df_by_month(df).items():
         file=flat_output_path
         
