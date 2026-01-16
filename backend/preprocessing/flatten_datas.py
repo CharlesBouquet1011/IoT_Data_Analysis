@@ -89,9 +89,14 @@ def flatten_datas(file: str, output_dir: str, chunk_size=100_000):
         # flush final
         if buffer:
             df = pd.DataFrame(buffer)
+            if columns_order is None:
+                columns_order = df.columns.tolist()
+            
+
             for col in columns_order:
                 if col not in df.columns:
                     df[col] = None
+            
             df = df[columns_order]
 
             table = pa.Table.from_pandas(df, preserve_index=False)
