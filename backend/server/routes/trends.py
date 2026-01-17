@@ -17,6 +17,5 @@ async def process(data:TrendsRequest):
     else:
         dico=trends(data.year,data.month,None,data.hopInterval,data.hopValue,data.freq)
 
-    files={"Saisonnalité":dico}
-    print(files)
-    return {"status":"ok","images":files}
+    
+    return {"status":"ok","images":dico}
