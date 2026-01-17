@@ -76,7 +76,7 @@ def produce_dataset(df:pd.DataFrame,verbose:bool,undefined_toggle:bool,outlier_t
     df=addNwkOperator(df) #le merge ici MODIFIE l'index
     df.drop("outlier",axis=1,inplace=True)
     print(f"Colonnes avant sauvegarde: {df.columns.tolist()}")
-    df.to_json(fichier_sortie, orient="records",lines=True) #il faudra readJson avec orient="index"
+    df.to_parquet(fichier_sortie, engine="pyarrow", compression="zstd") #il faudra readJson avec orient="index"
     print("custom_dataset.json generated successfully.") # VERBOSE terminé !
     return df #au cas où
 
@@ -156,7 +156,7 @@ def prepare_data(rolling_interval,attrList:list,file):
         dfs=sub_df_by_column(monthlyDf,"Type")
         for Type,subDf in dfs.items():
             os.makedirs(os.path.join(script_dir,"Data",str(year),str(month)),exist_ok=True)
-            outputFile=os.path.join(script_dir,"Data",str(year),str(month),Type+".json")
+            outputFile=os.path.join(script_dir,"Data",str(year),str(month),Type+".parquet")
             produce_dataset(subDf,False,True,True,rolling_interval,attrList,outputFile,Type)
 
 def open_df_flattened(fichier:str)->pd.DataFrame:

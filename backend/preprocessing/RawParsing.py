@@ -37,7 +37,17 @@ def ADR(data:str)->bool:
     """
     #on récupère la data dans la partie data de rxpk
     payload=base64.b64decode(data)
-    fctrl=payload[5] #selon la doc, le fctrl est le 5e octet de la payload cf page 17 de lorawan 1.0.3
+
+    if len(payload) < 6:
+        print(f"Payload trop courte ({len(payload)} octets): {payload.hex()}")
+        return None  # ou False, selon votre logique métier
+    
+    try:
+        fctrl = payload[5]  # selon la doc, le fctrl est le 5e octet de la payload cf page 17 de lorawan 1.0.3
+    except IndexError:
+        print(f"IndexError avec payload de {len(payload)} octets: {payload.hex()}")
+        return None
+
     #toujours selon la doc: dernier bit= ADDR donc on doit supprimer tous les autres
     filtre=0b10000000
     adr=(fctrl & filtre)!=0 #si le 7e bit (1er bit de poids fort donc) est 1, ça fait true, sinon false

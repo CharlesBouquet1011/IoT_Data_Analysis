@@ -53,10 +53,7 @@ def open_processed_df(file:str)->pd.DataFrame:
     :return: Dataframe correspondant au json choisi
     :rtype: DataFrame
     """
-    dfs = []
-    for chunk in pd.read_json(file, lines=True, chunksize=100_000):
-        dfs.append(chunk)
-    df = pd.concat(dfs, ignore_index=True)
+    df=pd.read_parquet(file,"pyarrow")
     if not df.empty:
         print(df.head(10))
         df["time"]=pd.to_datetime(df["time"], errors="coerce", utc=True)

@@ -26,6 +26,9 @@ services:
     volumes:
       - ./backend:/app
       - python_images:/app/Images 
+      - /app/preprocessing/Data #pour pas ralentir les I/O
+      - /app/preprocessing/flattened
+      - /app/preprocessing/Raw
     depends_on:
       - init-volumes
   react:
