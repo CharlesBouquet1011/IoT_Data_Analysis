@@ -26,7 +26,7 @@ services:
     volumes:
       - ./backend:/app
       - python_images:/app/Images 
-      - /app/preprocessing/Data #pour pas ralentir les I/O
+      - backend_data:/app/preprocessing/Data #pour pas ralentir les I/O
       - /app/preprocessing/flattened
       - /app/preprocessing/Raw
     depends_on:
@@ -88,9 +88,10 @@ services:
 
 volumes:
   react_build:
+  backend_data:
   python_images:
     driver: local
-    driver_opts: 
-      type: none
-      device: ./backend/Images
-      o: bind
+    # driver_opts: pour gagner niveau performances I/O
+    #   type: none
+    #   device: ./backend/Images
+    #   o: bind

@@ -1,0 +1,5 @@
+preprocessing/Data
+preprocessing/flattened
+preprocessing/Raw
+*.pyc
+__pycache__/
