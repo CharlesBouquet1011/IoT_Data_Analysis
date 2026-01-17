@@ -57,7 +57,6 @@ def produce_dataset(df:pd.DataFrame,verbose:bool,undefined_toggle:bool,outlier_t
     #on marque les entrées aberrantes puis on les supprimera dans un 2nd temps
     #sinon on pourrait supprimer des valeurs qui n'étaient pas si aberrantes que ça
     df["outlier"]=False
-    print(df.head)
     print(f"Index name: {df.index.name}")
     if outlier_toggle:
         for attr in selected_attrs:

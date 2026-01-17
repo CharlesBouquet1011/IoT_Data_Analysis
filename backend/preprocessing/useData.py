@@ -55,7 +55,6 @@ def open_processed_df(file:str)->pd.DataFrame:
     """
     df=pd.read_parquet(file,"pyarrow")
     if not df.empty:
-        print(df.head(10))
         df["time"]=pd.to_datetime(df["time"], errors="coerce", utc=True)
         df["@timestamp"]=pd.to_datetime(df["@timestamp"], errors="coerce", utc=True,unit="ms")
         df.set_index("@timestamp",inplace=True) #Pandas autorise d'avoir des index non uniques donc ça ne posera pas problème quoi qu'il arrive
