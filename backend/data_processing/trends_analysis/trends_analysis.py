@@ -123,7 +123,7 @@ def plotTimeSerie(df:pd.DataFrame,freq:str="D",hop_interval:str="weeks",hop_valu
             plt.savefig(plot_file, dpi=100, bbox_inches='tight')
             plt.close()
             files[nom]=plot_file
-        return files
+    return files
         
 def trends(year:int=None,month:int=None,categories:tuple|None=None,hop_interval:str="weeks",hop_value:int=1,freq:str="D")->dict:
     """

@@ -143,7 +143,7 @@ def Ouvre_Json_Mois_Categorie(annee:int,mois:int,Categorie:str)->pd.DataFrame:
     :rtype: DataFrame
     """
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    file=os.path.join(script_dir,"Data",str(annee),str(mois),Categorie+".json")
+    file=os.path.join(script_dir,"Data",str(annee),str(mois),Categorie+".parquet")
     df=open_processed_df(file)
     return df
 @cached(cache) #cache pour accès plus rapide
