@@ -18,7 +18,7 @@ import Dropzone from 'react-dropzone'
 import DatePicker from "react-datepicker"
 
 export function UploadForm(){
-
+    const [isLoading,setIsLoading]=useState(false)
     const [reload,setReload]=useState(0)
     const [succes,setSucces]=useState(false)
     const [processed,setProcessed]=useState(false)
@@ -27,6 +27,8 @@ export function UploadForm(){
     async function sendFile(file){
     try{
       console.log("envoi fichier")
+      setIsLoading(true)
+      setErreur("")
       setSucces(false) //pour pas qu'on puisse utiliser les composants suivants lorsqu'un fichier est en train d'être réupload (évitera probablement des bugs)
       const formdata=new FormData()
       formdata.append("file",file)
@@ -41,10 +43,11 @@ export function UploadForm(){
       setSucces(true)
       setReload(r => r ^ 1)
       setErreur("")
+      setIsLoading(false)
     }
     else{
       const data=await response.json()
-
+      setIsLoading(false)
       console.log(data.error)
       setSucces(false)
       setErreur(data.error)
@@ -53,6 +56,7 @@ export function UploadForm(){
     catch (err){
       console.log("Erreur lors de l'envoi du fichier: ",err)
       setSucces(false)
+      setIsLoading(false)
     }
     
 
@@ -81,7 +85,11 @@ export function UploadForm(){
           </section>
         )}
       </Dropzone>
-
+        {isLoading && (
+            <p className="text-gray-700 font-medium bg-gray-100 border border-gray-200 rounded-lg px-4 py-2 mt-2">
+                Chargement...
+            </p>
+        )}
         {erreur && (
         <p className="text-red-600 font-semibold bg-red-50 border border-red-200 rounded-lg px-4 py-2">
             {erreur}
@@ -100,7 +108,7 @@ export function UploadForm(){
 
 
 export function DateUploadForm({ setProcessed, processed }){
-  
+  const [isLoading,setIsLoading]=useState(false)
   const [rollingInterval,setRollingInterval]=useState(0)
   const [rollingIntervalType,setRollingIntervalType]=useState("")
   const [attrList,setAttrList]=useState([])
@@ -128,6 +136,7 @@ const attributs=["Airtime","BitRate","rssi","lsnr"] //rajouter des attributs ici
       setErreur("Veuillez renseigner tous les champs")
       return ;
     }
+    setIsLoading(true)
     const response=await fetch("http://localhost:8000/api/preprocessing",{
       method:"POST",
       credentials:"include",
@@ -143,11 +152,13 @@ const attributs=["Airtime","BitRate","rssi","lsnr"] //rajouter des attributs ici
     console.log("Response status:", response.status)
     console.log("Response ok:", response.ok)
     if (!response.ok){
+      setIsLoading(false)
       const errData = await response.json().catch(() => ({}))
       console.log("Erreur response:", errData)
       setErreur(errData.error || `Erreur ${response.status}`)
     }
     else{
+      setIsLoading(false)
       console.log("Prétraitement réussi")
       setErreur("")
       if (typeof setProcessed === 'function') setProcessed(true)
@@ -259,6 +270,11 @@ className="w-full px-4 py-2 border border-gray-300 rounded-lg
     </>
     </div>
   )}
+    {isLoading && (
+            <p className="text-gray-700 font-medium bg-gray-100 border border-gray-200 rounded-lg px-4 py-2 mt-2">
+                Chargement...
+            </p>
+        )}
 
     {erreur && (
         <p className="text-red-600 font-semibold bg-red-50 border border-red-200 rounded-lg px-4 py-2">

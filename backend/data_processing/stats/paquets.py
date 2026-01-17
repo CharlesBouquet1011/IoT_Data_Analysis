@@ -22,17 +22,19 @@ import matplotlib.pyplot as plt
 import os
 from numpy import ndarray
 import numpy as np
+from .adr import Proportion_ADR_Cat,RepartitionAdrGlobale
+
 categories=["Confirmed Data Up","Confirmed Data Down","Join Accept","Join Request","Proprietary","RFU","Unconfirmed Data Up","Unconfirmed Data Down"]
 script_dir=os.path.dirname(os.path.abspath(__file__))
 backend_dir=os.path.dirname(os.path.dirname(script_dir))
 plot_dir=os.path.join(backend_dir,"Images","Stats")
 
-def GatewayList(annee:int=None,mois:int=None)->ndarray:
-    df=Choose_Open(annee,mois,("Join Request",))
+def GatewayList(df:pd.DataFrame,annee:int=None,mois:int=None)->ndarray:
+    df=df[df["Type"]=="Join Request"]
     gateway=df["GW_EUI"].unique()
     return gateway
 
-def GetListValues(caracteristique:str,annee:int=None,mois:int=None)->ndarray:
+def GetListValues(df:pd.DataFrame,caracteristique:str,annee:int=None,mois:int=None)->ndarray:
     """
     Docstring for GetList
     Renvoie la liste de toutes les valeurs possibles d'une colonne caracteristique
@@ -46,8 +48,7 @@ def GetListValues(caracteristique:str,annee:int=None,mois:int=None)->ndarray:
     """
     if caracteristique=="GW_EUI": ##cas spécial, on a cette caractéristique que dans les paquets Join Request,
         #ça fonctionne probablement sans ce if mais je préfère ne pas prendre de risque
-        return GatewayList(annee,mois)
-    df=Choose_Open(annee,mois)
+        return GatewayList(df,annee,mois)
     liste=df[caracteristique].unique()
     
     valides = [x for x in liste if x is not None and pd.notna(x)] #ce qu'on peut sort
@@ -56,7 +57,7 @@ def GetListValues(caracteristique:str,annee:int=None,mois:int=None)->ndarray:
     valides.sort()
     return valides + nones
     
-def _RepartitionCaraCat(caracteristique:str,valeurCaracteristique,alias:str,annee:int=None,mois:int=None,categorie:str=None,repartitions:list=None):
+def _RepartitionCaraCat(df,caracteristique:str,valeurCaracteristique,alias:str,annee:int=None,mois:int=None,categorie:str=None,repartitions:list=None):
     """
     Docstring for _proportionCaraCat
     Renvoie la répartition selon les types de paquets dans une caractéristique
@@ -75,7 +76,6 @@ def _RepartitionCaraCat(caracteristique:str,valeurCaracteristique,alias:str,anne
     :param repartitions: Description
     :type repartitions: list
     """
-    df=Choose_Open(annee,mois)
     dfCat=df[df["Type"]==categorie]
     nombre=len(dfCat[dfCat[caracteristique]==valeurCaracteristique])
     tot=len(df[df[caracteristique]==valeurCaracteristique])
@@ -84,7 +84,7 @@ def _RepartitionCaraCat(caracteristique:str,valeurCaracteristique,alias:str,anne
     else:
         taux=0
     repartitions.append({"categorie":categorie,alias:taux})
-def _proportionCaraCat(caracteristique:str,valeurCaracteristique,alias:str,annee:int=None,mois:int=None,categorie:str=None,repartitions:list=None):
+def _proportionCaraCat(df:pd.DataFrame,caracteristique:str,valeurCaracteristique,alias:str,annee:int=None,mois:int=None,categorie:str=None,repartitions:list=None):
     """
     Docstring for _proportionCaraCat
     Renvoie la proportion de paquets d'une catégorie qui correspondent à cette caractéristique
@@ -103,7 +103,7 @@ def _proportionCaraCat(caracteristique:str,valeurCaracteristique,alias:str,annee
     :param repartitions: Description
     :type repartitions: list
     """
-    df=Choose_Open(annee,mois,(categorie,))
+    df=df[df["Type"]==categorie]
     nombre=len(df[df[caracteristique]==valeurCaracteristique])
     tot=len(df)
     taux=nombre/tot 
@@ -113,7 +113,7 @@ def ColumnsList(annee:int=None,mois:int=None)->list:
     df=Choose_Open(annee,mois)
     return df.columns.values.tolist()
 
-def RepartitionCaracteristiqueParCategorie(caracteristique:str,alias:str,annee:int=None,mois:int=None)->dict:
+def RepartitionCaracteristiqueParCategorie(dftot:pd.DataFrame,caracteristique:str,alias:str,annee:int=None,mois:int=None)->dict:
     """
     Docstring for RepartitionCaracteristiqueParCategorie
     Crée des histogrammes de répartition par valeur et par catégorie, chaque valeur de la caractéristique (colonne du DataFrame)
@@ -131,13 +131,13 @@ def RepartitionCaracteristiqueParCategorie(caracteristique:str,alias:str,annee:i
     :rtype: list[str]
     """
     plot_files={}
-    for valeurCaracteristique in GetListValues(caracteristique,annee,mois):
+    for valeurCaracteristique in GetListValues(dftot,caracteristique,annee,mois):
         repartitions=[]
         ul=set(["Confirmed Data Up","Join Request","Unconfirmed Data Up"])
         dl=set(["Confirmed Data Down","Join Accept","Unconfirmed Data Down"])
         #{nomImage:cheminImage}
         plot_file=os.path.join(plot_dir,f"Proportion_Paquets_{alias.replace("/","-")}={str(valeurCaracteristique).replace("/","-")}.webp")
-        [_proportionCaraCat(caracteristique,valeurCaracteristique,alias,annee,mois,categorie,repartitions) for categorie in categories] #plots 
+        [_proportionCaraCat(dftot,caracteristique,valeurCaracteristique,alias,annee,mois,categorie,repartitions) for categorie in categories] #plots 
         df=pd.DataFrame(repartitions).set_index("categorie")
         couleurs=["skyblue" if cat in ul else "salmon" if cat in dl else "grey" for cat in df.index.str.strip()]
         plt.figure()
@@ -153,7 +153,7 @@ def RepartitionCaracteristiqueParCategorie(caracteristique:str,alias:str,annee:i
         plt.close()
         repartitions=[]
         plot_file=os.path.join(plot_dir,f"Repartition_Type_Paquets_{alias.replace("/","-")}={str(valeurCaracteristique).replace("/","-")}.webp")
-        [_RepartitionCaraCat(caracteristique,valeurCaracteristique,alias,annee,mois,categorie,repartitions) for categorie in categories] #plots
+        [_RepartitionCaraCat(dftot,caracteristique,valeurCaracteristique,alias,annee,mois,categorie,repartitions) for categorie in categories] #plots
         df=pd.DataFrame(repartitions).set_index("categorie")
         couleurs=["skyblue" if cat in ul else "salmon" if cat in dl else "grey" for cat in df.index.str.strip()]
         print(list(df.index),couleurs)
@@ -171,14 +171,13 @@ def RepartitionCaracteristiqueParCategorie(caracteristique:str,alias:str,annee:i
     return plot_files
         
 
-def _proportionCaracteristique(annee,mois,repartitions,caracteristique,nomCaracteristique,valeurCaracteristique):
-    df=Choose_Open(annee,mois)
+def _proportionCaracteristique(df:pd.DataFrame,annee,mois,repartitions,caracteristique,nomCaracteristique,valeurCaracteristique):
     nombre=len(df[df[caracteristique]==valeurCaracteristique])
     tot=len(df)  
     taux=nombre/tot
     repartitions.append({nomCaracteristique:valeurCaracteristique,"taux":taux})  
 
-def RepartitionCaracteristiqueGlobale(caracteristique:str,alias:str,annee:int=None,mois:int=None)->dict:
+def RepartitionCaracteristiqueGlobale(dftot:pd.DataFrame,caracteristique:str,alias:str,annee:int=None,mois:int=None)->dict:
     """
     Docstring for RepartitionCaracteristiqueGlobale
     Crée des histogrammes de répartition par valeur selon la caractéristique (colonne du DataFrame) indiquée
@@ -196,7 +195,7 @@ def RepartitionCaracteristiqueGlobale(caracteristique:str,alias:str,annee:int=No
     """
     repartitions=[]
     plot_file=os.path.join(plot_dir,f"Repartition_{alias}_Globale.webp")
-    [_proportionCaracteristique(annee,mois,repartitions,caracteristique,alias,gw) for gw in GetListValues(caracteristique,annee,mois)] #plots
+    [_proportionCaracteristique(dftot,annee,mois,repartitions,caracteristique,alias,gw) for gw in GetListValues(dftot,caracteristique,annee,mois)] #plots
     df=pd.DataFrame(repartitions).set_index(alias)
     df.index = df.index.map(lambda x: str(x)[:20] + '...' if len(str(x)) > 20 else str(x))
     # Somme par ligne
@@ -220,10 +219,10 @@ def RepartitionCaracteristiqueGlobale(caracteristique:str,alias:str,annee:int=No
     #aidé par IA comme je ne savais pas du tout faire ça
     plot_file_detail = os.path.join(plot_dir, f"Repartition_Globale_{alias}_Detaillee_Par_Type.webp")
     
-    df_full = Choose_Open(annee, mois)
-    total_paquets = len(df_full)
+   
+    total_paquets = len(dftot)
     # création d'un DataFrame dont les lignes sont les valeurs caractéristiques et les colonnes sont les types de paquets
-    pivot_data = df_full.groupby([caracteristique, 'Type']).size().unstack(fill_value=0)
+    pivot_data = dftot.groupby([caracteristique, 'Type']).size().unstack(fill_value=0)
     
     # Normalisation
     pivot_normalized = pivot_data/total_paquets
@@ -269,9 +268,8 @@ def RepartitionCaracteristiqueGlobale(caracteristique:str,alias:str,annee:int=No
     
     return plot_files
 
-def plotHistogramGlobal(caracteristique:str,alias:str,annee:int=None,mois:int=None):
+def plotHistogramGlobal(df:pd.DataFrame,caracteristique:str,alias:str,annee:int=None,mois:int=None):
     plot_file=os.path.join(plot_dir,f"Histogramme_{alias}_Global.webp")
-    df=Choose_Open(annee,mois)
     df.hist(column=caracteristique,legend=True,
             density=True,
             bins="auto", #densité de proba en histogramme avec un découpage intelligent
@@ -284,9 +282,8 @@ def plotHistogramGlobal(caracteristique:str,alias:str,annee:int=None,mois:int=No
     plt.savefig(plot_file)
     plt.close()
     return {nom:plot_file}
-def plotHistogrammeParType(caracteristique:str,alias:str,annee:int|None=None,mois:int|None=None):
+def plotHistogrammeParType(df:pd.DataFrame,caracteristique:str,alias:str,annee:int|None=None,mois:int|None=None):
     plot_file=os.path.join(plot_dir,f"Histogramme_{alias}_Categorie.webp")
-    df=Choose_Open(annee,mois)
     df.hist(column=caracteristique,legend=True,by="Type",
             figsize=(16, 8),      # Plus large et plus haut
             density=True,
@@ -302,6 +299,32 @@ def plotHistogrammeParType(caracteristique:str,alias:str,annee:int|None=None,moi
     plt.savefig(plot_file)
     plt.close()
     return {nom:plot_file}
+
+
+def packetMain(columnList,year,month):
+    aliases={"Bandwidth":"Bandwidth","Coding_rate":"Coding Rate","GW_EUI": "Id Gateway","SF":"Spreading Factor","freq":"sous bande",
+             "modu":"modulation","adr":"Adaptive Data Rate",
+             "BitRate":"BitRate","Airtime":"Durée de vol","lsnr":"SNR","rssi":"Puissance du signal reçu","size":"taille du paquet",
+             "rfch":"RF Chain",
+             "Operator":"Opérateur"
+             }
+    files={}
+    histogrammes=set(["BitRate","Airtime","lsnr","rssi","size"])#métriques qui doivent être analysées par histogramme
+    df=Choose_Open(year,month)
+    for column in columnList:
+            dictionnaireCat={}
+            alias=aliases[column] #pas de gestion pour voir s'il envoit un truc dedans ou pas, pas le temps, personne va modifier le javascript pour un projet comme ça
+            if column=="adr": #fonction spéciale
+                dictionnaireCat.update(Proportion_ADR_Cat(df,year,month))
+                dictionnaireCat.update(RepartitionAdrGlobale(df,year,month))
+            elif column in histogrammes:
+                dictionnaireCat.update(plotHistogrammeParType(df,column,alias,year,month))
+                dictionnaireCat.update(plotHistogramGlobal(df,column,alias,year,month))
+            else:
+                dictionnaireCat.update(RepartitionCaracteristiqueGlobale(df,column,alias,year,month))
+                dictionnaireCat.update(RepartitionCaracteristiqueParCategorie(df,column,alias,year,month))
+            files[column]=dictionnaireCat
+    return files
 if __name__=="__main__":
     execution={"GW_EUI":"gateway","Bandwidth":"BW","SF":"Spreading Factor","codr":"coding rate","freq":"Sous Bande"}
     plotHistogramGlobal("lsnr","SNR")

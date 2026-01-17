@@ -1,2 +1,2 @@
-from .stats import Proportion_ADR_Cat,RepartitionCaracteristiqueGlobale,RepartitionCaracteristiqueParCategorie,nombreDevices,ColumnsList,RepartitionAdrGlobale,plotHistogrammeParType,plotHistogramGlobal
+from .stats import packetMain,ColumnsList
 from .trends_analysis import trends

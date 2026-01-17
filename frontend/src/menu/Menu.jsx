@@ -108,7 +108,7 @@ export function PredictionMenu(){
 export function ChooseData(){
     const categories = [
         'Confirmed Data Up','Confirmed Data Down','Join Accept','Join Request',
-        'Proprietary','RFU','Stat','Unconfirmed Data Up','Unconfirmed Data Down'
+        'Proprietary','RFU','Unconfirmed Data Up','Unconfirmed Data Down'
     ]
     const [catList,setCatList]=useState([])
     const [month,setMonth]=useState(null)
