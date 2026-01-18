@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 import pandas as pd
 import numpy as np
 import hdbscan
@@ -15,6 +16,10 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
+
+# Import de la fonction centralisée pour charger les données
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'preprocessing'))
+from useData import Choose_Open
 
 
 # ======================
@@ -47,7 +52,51 @@ def load_packets(json_file_or_dir):
         return pd.concat(dfs, ignore_index=True)
 
     with open(json_file_or_dir, 'r', encoding='utf-8') as f:
-        raw = json.load(f)
+        content = f.read().strip()
+    
+    # Essayer de parser comme JSON standard
+    try:
+        raw = json.loads(content)
+    except json.JSONDecodeError:
+        # Si échec, essayer comme JSON Lines (une ligne = un objet JSON)
+        packets = []
+        for line in content.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entry = json.loads(line)
+                if not isinstance(entry, dict):
+                    continue
+                
+                rx = {}
+                raw_pckt = entry.get('Raw_pckt') or entry.get('raw_pckt')
+                if isinstance(raw_pckt, str):
+                    try:
+                        parsed = json.loads(raw_pckt)
+                        if isinstance(parsed, dict) and 'rxpk' in parsed and isinstance(parsed['rxpk'], list) and len(parsed['rxpk'])>0:
+                            rx = parsed['rxpk'][0]
+                    except Exception:
+                        rx = {}
+                
+                packets.append({
+                    'Dev_Add': entry.get('Dev_Add') or entry.get('dev_add'),
+                    'Dev_EUI': entry.get('Dev_EUI') or entry.get('Dev_EUI'.lower()) or entry.get('Dev_EUI'),
+                    'SF': entry.get('SF'),
+                    'Bandwidth': entry.get('Bandwidth'),
+                    'BitRate': entry.get('BitRate'),
+                    'Coding_rate': entry.get('Coding_rate') or entry.get('codr'),
+                    'Airtime': entry.get('Airtime'),
+                    'freq': entry.get('freq') or rx.get('freq'),
+                    'rssi': entry.get('rssi') or rx.get('rssi'),
+                    'lsnr': entry.get('lsnr') or rx.get('lsnr'),
+                    'size': entry.get('size') or rx.get('size'),
+                    'Type': entry.get('Type')
+                })
+            except json.JSONDecodeError:
+                continue
+        
+        return pd.DataFrame(packets)
 
     packets = []
 
@@ -159,14 +208,37 @@ def build_pipeline():
 # 2. Entraînement
 # ======================
 
-def train(json_file_or_dir, output_dir=None):
+def train(json_file_or_dir=None, output_dir=None, year=None, month=None, categories=None):
+    """Entraîner le modèle de prédiction Dev_EUI.
+    
+    Deux modes de chargement des données:
+    1. Utiliser Choose_Open (recommandé): fournir year, month, categories
+    2. Utiliser load_packets (legacy): fournir json_file_or_dir
+    """
     if output_dir is None:
         output_dir = os.path.join(os.path.dirname(__file__), "model")
 
-    df = load_packets(json_file_or_dir)
+    # Essayer d'abord Choose_Open si les paramètres sont fournis
+    if year is not None or month is not None or categories is not None:
+        try:
+            print(f"Loading data using Choose_Open(year={year}, month={month}, categories={categories})...")
+            df = Choose_Open(year=year, month=month, categories=categories)
+            print(f"Loaded {len(df)} packets from database")
+        except Exception as e:
+            print(f"Warning: Choose_Open failed: {e}")
+            if json_file_or_dir is None:
+                raise ValueError("Choose_Open failed and no json_file_or_dir provided as fallback")
+            print(f"Falling back to load_packets({json_file_or_dir})...")
+            df = load_packets(json_file_or_dir)
+            print(f"Loaded {len(df)} packets from {json_file_or_dir}")
+    elif json_file_or_dir is not None:
+        # Mode legacy : charger depuis JSON
+        df = load_packets(json_file_or_dir)
+        print(f"Loaded {len(df)} packets from {json_file_or_dir}")
+    else:
+        raise ValueError("Must provide either (year/month/categories) or json_file_or_dir")
 
     start_time = time.time()
-    print(f"Loaded {len(df)} packets from {json_file_or_dir}")
 
     # On garde uniquement les Join Requests avec Dev_EUI connu
     df = df[(df["Type"] == "Join Request") & (df["Dev_EUI"].notna()) & (df["Dev_EUI"] != "")].reset_index(drop=True)
