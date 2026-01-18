@@ -275,7 +275,7 @@ def plotHistogramGlobal(df:pd.DataFrame,caracteristique:str,alias:str,annee:int=
             bins="auto", #densité de proba en histogramme avec un découpage intelligent
             )
     nom=f"Histogramme {alias} global"
-    plt.ylabel("nombre d'occurrences")
+    plt.ylabel("proportion")
     plt.title(nom)
     plt.xlabel(alias)
     plt.tight_layout()
@@ -292,7 +292,7 @@ def plotHistogrammeParType(df:pd.DataFrame,caracteristique:str,alias:str,annee:i
             sharex=True
             )
     nom=f"Histogrammes {alias} par type de paquet"
-    plt.ylabel("nombre d'occurrences")
+    plt.ylabel("proportion")
     plt.suptitle(nom)
     plt.xlabel(alias)
     plt.tight_layout()
