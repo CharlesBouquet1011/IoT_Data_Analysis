@@ -58,7 +58,7 @@ export function MenuPrincipal(){
                         </div>
                     </button>
                 </div>
-
+1
                 <div className="mt-6">
                     {selection === 1 && (<UploadForm />)}
                     {selection === 2 && (<ChooseData />)}

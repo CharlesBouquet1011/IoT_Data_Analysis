@@ -13,6 +13,12 @@ from typing import List, Optional, Tuple, Union
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
+import pandas as pd
+
+# Import de la fonction centralisée de chargement des données
+import sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
+from preprocessing.useData import Choose_Open
 
 """
 	Charge les données JSON pour le mois/année donnés et trace un graphique de clustering.
@@ -42,55 +48,91 @@ def plot_clustering(year: int,
 
 	month_str = str(int(month))
 
-	base_dir = os.path.join(os.path.dirname(__file__), "..", "..", "preprocessing", "Data")
-	base_dir = os.path.normpath(base_dir)
-	data_dir = os.path.join(base_dir, str(year), month_str)
+	# Utiliser Choose_Open de useData.py pour charger les données
+	# Cela utilise automatiquement PostgreSQL si disponible, sinon les fichiers JSON
+	try:
+		df = Choose_Open(year, month, (data_type,))
+		
+		# Convertir le DataFrame en liste de dictionnaires pour compatibilité avec le code existant
+		# Si l'index est @timestamp, le réinitialiser pour l'inclure comme colonne
+		if df.index.name == '@timestamp':
+			df_reset = df.reset_index()
+		else:
+			df_reset = df
+		
+		entries = df_reset.to_dict(orient='records')
+		
+	except Exception as e:
+		# Si Choose_Open échoue, fallback sur l'ancienne méthode de chargement
+		print(f"Avertissement: Impossible d'utiliser Choose_Open ({e}), fallback sur chargement JSON direct")
+		
+		base_dir = os.path.join(os.path.dirname(__file__), "..", "..", "preprocessing", "Data")
+		base_dir = os.path.normpath(base_dir)
+		data_dir = os.path.join(base_dir, str(year), month_str)
 
-	if not os.path.isdir(data_dir):
-		raise FileNotFoundError(f"Dossier inexistant à {data_dir}")
+		if not os.path.isdir(data_dir):
+			raise FileNotFoundError(f"Dossier inexistant à {data_dir}")
 
-	known_files = {
-		"confirmed data up": "Confirmed Data Up.json",
-		"confirmed data down": "Confirmed Data Down.json",
-		"join accept": "Join Accept.json",
-		"join request": "Join Request.json",
-		"proprietary": "Proprietary.json",
-		"rfu": "RFU.json",
-		"stat": "Stat.json",
-		"unconfirmed data up": "Unconfirmed Data Up.json",
-		"unconfirmed data down": "Unconfirmed Data Down.json"
-	}
+		known_files = {
+			"confirmed data up": "Confirmed Data Up.json",
+			"confirmed data down": "Confirmed Data Down.json",
+			"join accept": "Join Accept.json",
+			"join request": "Join Request.json",
+			"proprietary": "Proprietary.json",
+			"rfu": "RFU.json",
+			"stat": "Stat.json",
+			"unconfirmed data up": "Unconfirmed Data Up.json",
+			"unconfirmed data down": "Unconfirmed Data Down.json"
+		}
 
-	key = data_type.strip().lower()
-	filename = known_files.get(key, None)
-	if filename is None:
-		for k, v in known_files.items():
-			if k in key or key in k:
-				filename = v
-				break
+		key = data_type.strip().lower()
+		filename = known_files.get(key, None)
+		if filename is None:
+			for k, v in known_files.items():
+				if k in key or key in k:
+					filename = v
+					break
 
-	if filename is None:
-		maybe = data_type if data_type.lower().endswith(".json") else data_type + ".json"
-		candidate = os.path.join(data_dir, maybe)
-		if os.path.isfile(candidate):
-			filename = maybe
+		if filename is None:
+			maybe = data_type if data_type.lower().endswith(".json") else data_type + ".json"
+			candidate = os.path.join(data_dir, maybe)
+			if os.path.isfile(candidate):
+				filename = maybe
 
-    # Gestion des erreurs (absence de fichier)
-	filepath = os.path.join(data_dir, filename)
-	if not os.path.isfile(filepath):
-		raise FileNotFoundError(f"Fichier inexistant à {filepath}")
+		# Gestion des erreurs (absence de fichier)
+		if filename is None:
+			raise FileNotFoundError(f"Fichier pour '{data_type}' introuvable dans {data_dir}")
+			
+		filepath = os.path.join(data_dir, filename)
+		if not os.path.isfile(filepath):
+			raise FileNotFoundError(f"Fichier inexistant à {filepath}")
 
-    # Ouverture et import du fichier JSON
-	with open(filepath, 'r', encoding='utf-8') as f:
-		data = json.load(f)
-
-    # Extraction des entrées du fichier
-	if isinstance(data, dict):
-		entries = list(data.values())
-	elif isinstance(data, list):
-		entries = data
-	else:
-		raise ValueError("Format invalide")
+		# Ouverture et import du fichier JSON
+		with open(filepath, 'r', encoding='utf-8') as f:
+			content = f.read().strip()
+			
+		# Essayer de parser comme JSON standard
+		try:
+			data = json.loads(content)
+		except json.JSONDecodeError:
+			# Si échec, essayer comme JSON Lines (une ligne = un objet JSON)
+			entries = []
+			for line in content.splitlines():
+				line = line.strip()
+				if not line:
+					continue
+				try:
+					entries.append(json.loads(line))
+				except json.JSONDecodeError:
+					continue
+		else:
+			# Extraction des entrées du fichier
+			if isinstance(data, dict):
+				entries = list(data.values())
+			elif isinstance(data, list):
+				entries = data
+			else:
+				raise ValueError("Format invalide")
 
     # Validation des paramètres
 	if n_metrics not in (1, 2, 3):
