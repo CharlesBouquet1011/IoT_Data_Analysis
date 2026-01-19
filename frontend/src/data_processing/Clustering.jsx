@@ -35,7 +35,8 @@ export function Clustering() {
     "size",
     "freq",
     "SF",
-    "Bandwidth"
+    "Bandwidth",
+    "adr"
   ]
 
   async function processClustering() {

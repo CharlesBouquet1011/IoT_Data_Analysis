@@ -48,8 +48,6 @@ def plot_clustering(year: int,
 
 	month_str = str(int(month))
 
-	# Utiliser Choose_Open de useData.py pour charger les données
-	# Cela utilise automatiquement PostgreSQL si disponible, sinon les fichiers JSON
 	try:
 		df = Choose_Open(year, month, (data_type,))
 		
