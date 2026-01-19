@@ -106,7 +106,14 @@ def _proportionCaraCat(df:pd.DataFrame,caracteristique:str,valeurCaracteristique
     df=df[df["Type"]==categorie]
     nombre=len(df[df[caracteristique]==valeurCaracteristique])
     tot=len(df)
-    taux=nombre/tot 
+    if categorie == "Confirmed Data Down":
+        print(df[[caracteristique]].value_counts(dropna=False))
+    if tot!=0:
+        taux=nombre/tot 
+    else:
+        taux=0
+        print(caracteristique,"==",valeurCaracteristique,"=0")
+
     repartitions.append({"categorie":categorie,alias:taux})
 
 def ColumnsList(annee:int=None,mois:int=None)->list:
@@ -131,6 +138,7 @@ def RepartitionCaracteristiqueParCategorie(dftot:pd.DataFrame,caracteristique:st
     :rtype: list[str]
     """
     plot_files={}
+    print(dftot[dftot["Type"].str.contains("Down")][["Dev_Add"]].head(20))
     for valeurCaracteristique in GetListValues(dftot,caracteristique,annee,mois):
         repartitions=[]
         ul=set(["Confirmed Data Up","Join Request","Unconfirmed Data Up"])
@@ -146,7 +154,6 @@ def RepartitionCaracteristiqueParCategorie(dftot:pd.DataFrame,caracteristique:st
         plt.ylabel("Proportion")
         plt.xlabel(alias)
         plt.title(f"Proportion de Paquets {caracteristique}={valeurCaracteristique} par categorie")
-        plt.ylim(0, 1)
         plt.tight_layout()
         plt.savefig(plot_file)
         plot_files[f"Proportion_{caracteristique}={valeurCaracteristique}"]=plot_file
@@ -156,7 +163,6 @@ def RepartitionCaracteristiqueParCategorie(dftot:pd.DataFrame,caracteristique:st
         [_RepartitionCaraCat(dftot,caracteristique,valeurCaracteristique,alias,annee,mois,categorie,repartitions) for categorie in categories] #plots
         df=pd.DataFrame(repartitions).set_index("categorie")
         couleurs=["skyblue" if cat in ul else "salmon" if cat in dl else "grey" for cat in df.index.str.strip()]
-        print(list(df.index),couleurs)
         plt.figure()
         plt.bar(np.arange(len(df)), df[alias], color=couleurs)
         plt.xticks(np.arange(len(df)), df.index, rotation=45, ha='right')
