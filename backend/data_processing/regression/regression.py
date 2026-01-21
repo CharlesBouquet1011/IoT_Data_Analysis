@@ -54,6 +54,7 @@ def plot_feature_importance(
     plt.ylabel("Feature", fontsize=12)
     plt.title(title, fontsize=14, fontweight='bold')
     plt.grid(axis='x', alpha=0.3)
+    plt.xlim(0, 0.75)
     plt.tight_layout()
     
     os.makedirs(save_path, exist_ok=True)
@@ -322,7 +323,7 @@ def run_signal_models(
 
     # Shared Y-axis limits (residuals)
     all_residuals = np.concatenate([residuals_rssi, residuals_snr])
-    y_lim = np.max(np.abs(all_residuals))
+    y_lim = 50
 
     for ax in axes:
         ax.set_ylim(-y_lim, y_lim)
