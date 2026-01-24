@@ -42,9 +42,9 @@ def Repartition_ADR_Dans_Categorie(dftot:pd.DataFrame,annee:int|None=None,mois:i
         plt.figure()
         plt.bar(np.arange(len(df)), df[alias], color=couleurs)
         plt.xticks(np.arange(len(df)), df.index, rotation=45, ha='right')
-        plt.ylabel("Taux")
+        plt.ylabel("Rate")
         plt.xlabel(alias)
-        plt.title(f"Repartition par Type de paquets dont {caracteristique}={valeurCaracteristique}")
+        plt.title(f"Packet distribution by type where {caracteristique}={valeurCaracteristique}")
         plt.ylim(0, 1)
         plt.tight_layout()
         plt.savefig(plot_file)
@@ -59,7 +59,7 @@ def Proportion_ADR_Cat(dftot:pd.DataFrame,annee:int|None=None,mois:int|None=None
     [_proportion_ADR(dftot,repartitions,annee,mois,cat) for cat in categories] #plots
     df=pd.DataFrame(repartitions).set_index("categorie")
     df.plot(kind='bar',legend=False)
-    nom="Proportion ADR Par Categorie"
+    nom="Proportion ADR by Category"
     if annee is not None:
         nom+= " "+ str(annee)
     if mois is not None:
@@ -72,7 +72,7 @@ def Proportion_ADR_Cat(dftot:pd.DataFrame,annee:int|None=None,mois:int|None=None
     plt.xticks(np.arange(len(df)), df.index, rotation=45, ha='right')
     plt.ylabel("Proportion")
     plt.xlabel("adr")
-    plt.title("Proportion de Paquets avec adr par type")
+    plt.title("Proportion of packets with adr by type")
     plt.xlabel("Type")
     plt.ylabel(nom)
     plt.ylim(0, 1)
@@ -86,7 +86,7 @@ def Proportion_ADR_Cat(dftot:pd.DataFrame,annee:int|None=None,mois:int|None=None
 def RepartitionAdrGlobale(dftot:pd.DataFrame,annee:int|None=None,mois:int|None=None)->dict:
     plot_file=os.path.join(plot_dir,f"Repartition_ADR_Globale.webp")
     repartitions=[]
-    nom="Proportion ADR Globale"
+    nom="Global ADR proportion"
     if annee is not None:
         nom+= " "+ str(annee)
     if mois is not None:

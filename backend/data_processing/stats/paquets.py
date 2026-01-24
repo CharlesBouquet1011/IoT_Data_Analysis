@@ -138,37 +138,42 @@ def RepartitionCaracteristiqueParCategorie(dftot:pd.DataFrame,caracteristique:st
     :rtype: list[str]
     """
     plot_files={}
-    print(dftot[dftot["Type"].str.contains("Down")][["Dev_Add"]].head(20))
+    if caracteristique=="Operator":
+        dftot=dftot[~(dftot["Type"].isin(["Join Accept","Confirmed Data Down","Unconfirmed Data Down","Join Accept"]))]#on drop le downlink + Join Request
+        cats=["Confirmed Data Up","Proprietary","RFU","Unconfirmed Data Up"]
+    else:
+        cats=categories
     for valeurCaracteristique in GetListValues(dftot,caracteristique,annee,mois):
         repartitions=[]
         ul=set(["Confirmed Data Up","Join Request","Unconfirmed Data Up"])
         dl=set(["Confirmed Data Down","Join Accept","Unconfirmed Data Down"])
         #{nomImage:cheminImage}
         plot_file=os.path.join(plot_dir,f"Proportion_Paquets_{alias.replace("/","-")}={str(valeurCaracteristique).replace("/","-")}.webp")
-        [_proportionCaraCat(dftot,caracteristique,valeurCaracteristique,alias,annee,mois,categorie,repartitions) for categorie in categories] #plots 
+        [_proportionCaraCat(dftot,caracteristique,valeurCaracteristique,alias,annee,mois,categorie,repartitions) for categorie in cats] #plots 
         df=pd.DataFrame(repartitions).set_index("categorie")
         couleurs=["skyblue" if cat in ul else "salmon" if cat in dl else "grey" for cat in df.index.str.strip()]
         plt.figure()
         plt.bar(np.arange(len(df)), df[alias], color=couleurs)
         plt.xticks(np.arange(len(df)), df.index, rotation=45, ha='right')
         plt.ylabel("Proportion")
+        plt.ylim(top=min(df.max().max(),1))
         plt.xlabel(alias)
-        plt.title(f"Proportion de Paquets {caracteristique}={valeurCaracteristique} par categorie")
+        plt.title(f"Proportion of Packets where {caracteristique}={valeurCaracteristique} by category")
         plt.tight_layout()
         plt.savefig(plot_file)
         plot_files[f"Proportion_{caracteristique}={valeurCaracteristique}"]=plot_file
         plt.close()
         repartitions=[]
         plot_file=os.path.join(plot_dir,f"Repartition_Type_Paquets_{alias.replace("/","-")}={str(valeurCaracteristique).replace("/","-")}.webp")
-        [_RepartitionCaraCat(dftot,caracteristique,valeurCaracteristique,alias,annee,mois,categorie,repartitions) for categorie in categories] #plots
+        [_RepartitionCaraCat(dftot,caracteristique,valeurCaracteristique,alias,annee,mois,categorie,repartitions) for categorie in cats] #plots
         df=pd.DataFrame(repartitions).set_index("categorie")
         couleurs=["skyblue" if cat in ul else "salmon" if cat in dl else "grey" for cat in df.index.str.strip()]
         plt.figure()
         plt.bar(np.arange(len(df)), df[alias], color=couleurs)
         plt.xticks(np.arange(len(df)), df.index, rotation=45, ha='right')
-        plt.ylabel("Taux")
+        plt.ylabel("Rate")
         plt.xlabel(alias)
-        plt.title(f"Repartition par Type de paquets dont {caracteristique}={valeurCaracteristique}")
+        plt.title(f"Packet Type distribution where {caracteristique}={valeurCaracteristique}")
         plt.ylim(0, 1)
         plt.tight_layout()
         plt.savefig(plot_file)
@@ -180,6 +185,8 @@ def RepartitionCaracteristiqueParCategorie(dftot:pd.DataFrame,caracteristique:st
 def _proportionCaracteristique(df:pd.DataFrame,annee,mois,repartitions,caracteristique,nomCaracteristique,valeurCaracteristique):
     nombre=len(df[df[caracteristique]==valeurCaracteristique])
     tot=len(df)  
+    if caracteristique=="Operator":
+        print("packet number : ", nombre)
     taux=nombre/tot
     repartitions.append({nomCaracteristique:valeurCaracteristique,"taux":taux})  
 
@@ -201,6 +208,9 @@ def RepartitionCaracteristiqueGlobale(dftot:pd.DataFrame,caracteristique:str,ali
     """
     repartitions=[]
     plot_file=os.path.join(plot_dir,f"Repartition_{alias}_Globale.webp")
+    if caracteristique=="Operator":
+        dftot=dftot[~(dftot["Type"].isin(["Join Accept","Confirmed Data Down","Unconfirmed Data Down","Join Accept"]))]#on drop le downlink + Join Request
+
     [_proportionCaracteristique(dftot,annee,mois,repartitions,caracteristique,alias,gw) for gw in GetListValues(dftot,caracteristique,annee,mois)] #plots
     df=pd.DataFrame(repartitions).set_index(alias)
     df.index = df.index.map(lambda x: str(x)[:20] + '...' if len(str(x)) > 20 else str(x))
@@ -210,7 +220,7 @@ def RepartitionCaracteristiqueGlobale(dftot:pd.DataFrame,caracteristique:str,ali
     # Réorganiser les lignes selon l'ordre décroissant des sommes
     df = df.reindex(row_sums.sort_values(ascending=False).index)
     df.plot(kind='bar',legend=False)
-    nom=f"Proportion {alias} globale"
+    nom=f"Global {alias} proportion"
     plt.ylabel("Taux")
     plt.title(nom)
     plt.xlabel(alias)
@@ -250,8 +260,19 @@ def RepartitionCaracteristiqueGlobale(dftot:pd.DataFrame,caracteristique:str,ali
         "Proprietary": "#95a5a6",            # Gris
         "RFU": "#bdc3c7"                     # Gris clair
     }
+    type_hatches = {
+    "Confirmed Data Up": "///",
+    "Unconfirmed Data Up": "\\\\\\",
+    "Join Request": "xxx",
+    "Confirmed Data Down": "---",
+    "Unconfirmed Data Down": "...",
+    "Join Accept": "++",
+    "Proprietary": "oo",
+    "RFU": "**"
+} #motifs de hachures
     colors = [type_colors.get(cat, '#34495e') for cat in pivot_normalized.columns]
-    
+    hatches = [type_hatches.get(cat, "") for cat in pivot_normalized.columns]
+
     #création du graphique
     ax = pivot_normalized.plot(
         kind='bar', 
@@ -259,14 +280,17 @@ def RepartitionCaracteristiqueGlobale(dftot:pd.DataFrame,caracteristique:str,ali
         color=colors,
         figsize=(12, 6)
     )
-    
-    nom_detail = f"Répartition Globale {alias} détaillée par type de paquet"
+    # Application des hachures
+    for container, hatch in zip(ax.containers, hatches):
+        for bar in container:
+            bar.set_hatch(hatch)
+    nom_detail = f"Global distribution of packets by {alias}"
     plt.ylabel("Proportion")
     plt.title(nom_detail)
     plt.xlabel(alias)
     plt.ylim(0, 1)
     plt.xticks(rotation=45, ha='right', fontsize=9)
-    plt.legend(title='Type de paquet', bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8)
+    plt.legend(title='Packet type', bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8)
     plt.tight_layout()
     plt.savefig(plot_file_detail, bbox_inches='tight')  # bbox_inches pour inclure la légende
     plt.close()
@@ -276,31 +300,33 @@ def RepartitionCaracteristiqueGlobale(dftot:pd.DataFrame,caracteristique:str,ali
 
 def plotHistogramGlobal(df:pd.DataFrame,caracteristique:str,alias:str,annee:int=None,mois:int=None):
     plot_file=os.path.join(plot_dir,f"Histogramme_{alias}_Global.webp")
-    df.hist(column=caracteristique,legend=True,
+    axes=df.hist(column=caracteristique,legend=True, #df.hist renvoie une liste des ax (les plots)
             density=True,
             bins="auto", #densité de proba en histogramme avec un découpage intelligent
             )
-    nom=f"Histogramme {alias} global"
-    plt.ylabel("proportion")
-    plt.title(nom)
-    plt.xlabel(alias)
+    nom=f"Global {alias} histogram"
+    for ax in axes.flatten():
+        ax.set_xlabel(alias)       # axe X
+        ax.set_ylabel("Proportion")# axe Y
+    plt.suptitle(nom)
     plt.tight_layout()
     plt.savefig(plot_file)
     plt.close()
     return {nom:plot_file}
 def plotHistogrammeParType(df:pd.DataFrame,caracteristique:str,alias:str,annee:int|None=None,mois:int|None=None):
     plot_file=os.path.join(plot_dir,f"Histogramme_{alias}_Categorie.webp")
-    df.hist(column=caracteristique,legend=True,by="Type",
+    axes=df.hist(column=caracteristique,legend=True,by="Type",
             figsize=(16, 8),      # Plus large et plus haut
             density=True,
             bins="auto", #densité de proba en histogramme avec un découpage intelligent
             layout=(2, 4),        # 2 lignes, 4 colonnes = 8 subplots
             sharex=True
             )
-    nom=f"Histogrammes {alias} par type de paquet"
-    plt.ylabel("proportion")
+    nom=f"{alias} histograms by packet type"
+    for ax in axes.flatten():
+        ax.set_xlabel(alias)       # axe X
+        ax.set_ylabel("Proportion")# axe Y
     plt.suptitle(nom)
-    plt.xlabel(alias)
     plt.tight_layout()
     plt.savefig(plot_file)
     plt.close()
@@ -308,11 +334,11 @@ def plotHistogrammeParType(df:pd.DataFrame,caracteristique:str,alias:str,annee:i
 
 
 def packetMain(columnList,year,month):
-    aliases={"Bandwidth":"Bandwidth","Coding_rate":"Coding Rate","GW_EUI": "Id Gateway","SF":"Spreading Factor","freq":"sous bande",
-             "modu":"modulation","adr":"Adaptive Data Rate",
-             "BitRate":"BitRate","Airtime":"Durée de vol","lsnr":"SNR","rssi":"Puissance du signal reçu","size":"taille du paquet",
+    aliases={"Bandwidth":"Bandwidth","Coding_rate":"Coding Rate","GW_EUI": "Id Gateway","SF":"Spreading Factor","freq":"Frequency",
+             "modu":"Modulation","adr":"Adaptive Data Rate",
+             "BitRate":"BitRate","Airtime":"Airtime","lsnr":"SNR","rssi":"Received Signal Strength","size":"Packet size",
              "rfch":"RF Chain",
-             "Operator":"Opérateur"
+             "Operator":"Operator"
              }
     files={}
     histogrammes=set(["BitRate","Airtime","lsnr","rssi","size"])#métriques qui doivent être analysées par histogramme

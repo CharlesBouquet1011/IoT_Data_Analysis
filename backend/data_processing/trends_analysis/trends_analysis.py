@@ -30,19 +30,19 @@ os.makedirs(os.path.join(plot_dir,"Global"),exist_ok=True)
 os.makedirs(os.path.join(plot_dir,"Stats"),exist_ok=True)
 
 nom_freq = {
-    "s": "seconde",      # Pour du debugging très fin
-    "10s": "10 secondes", # Monitoring temps réel
-    "30s": "30 secondes", # Monitoring temps réel
+    "s": "second",      # Pour du debugging très fin
+    "10s": "10 seconds", # Monitoring temps réel
+    "30s": "30 seconds", # Monitoring temps réel
     "min": "minute",      # Analyse fine du trafic
     "5min": "5 minutes",  # Standard pour métriques IoT
     "10min": "10 minutes",
     "15min": "15 minutes", # Très courant (quart d'heure)
     "30min": "30 minutes", # Demi-heure
-    "h": "heure",
-    "D": "jour",
-    "W": "semaine",
-    "ME": "mois",         # Month End (plus précis que "M")
-    "YE": "année"         # Year End (plus précis que "Y")
+    "h": "hour",
+    "D": "day",
+    "W": "week",
+    "ME": "month",         # Month End (plus précis que "M")
+    "YE": "year"         # Year End (plus précis que "Y")
 }
     # Formats de date en fonction de hop_interval
 date_formats = {
@@ -114,10 +114,10 @@ def plotTimeSerie(df:pd.DataFrame,freq:str="D",hop_interval:str="weeks",hop_valu
         if len(Copie)>0: 
             timeSerie=Copie.resample(freq).size().dropna() #regroupe par intervalle de temps à partir de début et met en valeur le nombre de paquets qu'il y a eu
             timeSerie.plot(kind="line")
-            plt.ylabel("Nombre de paquets")
+            plt.ylabel("Packet number")
             plt.xlabel("Date")
             plt.xlim(left=start,right=Copie.index.max())
-            titre=f"Nombre de paquets par {nom_freq.get(freq)} a partir de {start.strftime(date_format)} à {end.strftime(date_format)}"
+            titre=f"Packet number by {nom_freq.get(freq)} from {start.strftime(date_format)} to {end.strftime(date_format)}"
             plt.title(titre)
             nom=f"{start.strftime(date_format)}-{end.strftime(date_format)}"
             plot_file=os.path.join(plot_dir,"Seasonality",f"{nom}.webp")
@@ -140,11 +140,11 @@ def plotTimeSerie(df:pd.DataFrame,freq:str="D",hop_interval:str="weeks",hop_valu
                 timeSerie.plot(kind="line", linewidth=2)
             plt.xlim(left=start,right=Copie.index.max())
 
-            plt.ylabel("Nombre de paquets")
+            plt.ylabel("Packet number")
             plt.xlabel("Date")
             plt.grid(True, alpha=0.3)
             
-            nom = f"Nombre de paquets par {nom_freq.get(freq, freq)} a partir de {start.strftime('%d-%m-%Y')} à {end.strftime('%d-%m-%Y')}"
+            nom = f"Packet number by {nom_freq.get(freq, freq)} from {start.strftime('%d-%m-%Y')} to {end.strftime('%d-%m-%Y')}"
             plt.title(nom)
             nom=f"{start.strftime(date_format)}-{end.strftime(date_format)}"
             plot_file = os.path.join(plot_dir,"Seasonality",f"{nom}.webp")
@@ -186,10 +186,10 @@ def plotMultipleTimeSeries(df:pd.DataFrame,freq:str="D",hop_interval:str="weeks"
             timeSerie=Copie.resample(freq).sum().dropna() #regroupe par intervalle de temps à partir de début et met en valeur le nombre de paquets qu'il y a eu          
             timeSerie.plot(kind="line")
             plt.xlim(left=start,right=Copie.index.max())
-            plt.ylabel("Nombre de paquets")
+            plt.ylabel("Packet Number")
             plt.xlabel("Date")
-            plt.legend(title='Type de paquet', bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8)
-            nom=f"Nombre de paquets par Type et par {nom_freq.get(freq)} a partir de {start.strftime(date_format)} à {end.strftime(date_format)}"
+            plt.legend(title='Packet type', bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8)
+            nom=f"Packet number by type and by {nom_freq.get(freq)} from {start.strftime(date_format)} to {end.strftime(date_format)}"
             plt.title(nom)
             nom=f"{start.strftime(date_format)}-{end.strftime(date_format)}"
             plot_file=os.path.join(plot_dir,"Global",f"{nom}.webp")
@@ -211,11 +211,11 @@ def plotMultipleTimeSeries(df:pd.DataFrame,freq:str="D",hop_interval:str="weeks"
             else:
                 timeSerie.plot(kind="line", linewidth=2)
             plt.xlim(left=start,right=Copie.index.max())
-            plt.ylabel("Nombre de paquets")
+            plt.ylabel("Packet number")
             plt.xlabel("Date")
             plt.grid(True, alpha=0.3)
-            plt.legend(title='Type de paquet', bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8)
-            nom = f"Nombre de paquets par Type et par {nom_freq.get(freq, freq)} a partir de {start.strftime('%d-%m-%Y')} à {end.strftime('%d-%m-%Y')}"
+            plt.legend(title='Packet type', bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8)
+            nom = f"Packet number {nom_freq.get(freq, freq)} from {start.strftime('%d-%m-%Y')} to {end.strftime('%d-%m-%Y')}"
             plt.title(nom)
             nom=f"{start.strftime(date_format)}-{end.strftime(date_format)}"
             plot_file = os.path.join(plot_dir,"Global", f"{nom}.webp")
@@ -331,7 +331,7 @@ def plotTimeSerieStats(df: pd.DataFrame, freq: str = "D", hop_interval: str = "w
             timeSerie = Copie.resample(freq).size().dropna()
             
             weekday = start.weekday()
-            weekday_names = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']
+            weekday_names = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'staturday', 'sunday']
             weekday_name = weekday_names[weekday]
             
             # Exclure la période actuelle des stats
@@ -350,7 +350,7 @@ def plotTimeSerieStats(df: pd.DataFrame, freq: str = "D", hop_interval: str = "w
             
             # Courbe de la période actuelle
             ax.plot(timeSerie.index, timeSerie.values,
-                   label=f'Période du {start.strftime(date_format)}',
+                   label=f'Period from {start.strftime(date_format)}',
                    linewidth=2.5, marker='o', markersize=5, color='#2E86AB', zorder=3)
             
             # Moyenne du même weekday
@@ -358,7 +358,7 @@ def plotTimeSerieStats(df: pd.DataFrame, freq: str = "D", hop_interval: str = "w
                 mean_times =start + pd.to_timedelta(same_weekday_stats.index, unit="s")
                 
                 ax.plot(mean_times, same_weekday_stats['mean'].values,
-                       label=f'Moyenne des {weekday_name}s ({len(stats_filtered[stats_filtered["weekday"]==weekday]["period_start"].unique())} périodes)',
+                       label=f'Average of {weekday_name}s ({len(stats_filtered[stats_filtered["weekday"]==weekday]["period_start"].unique())} periods)',
                        linewidth=2, linestyle='--', color='#A23B72', zorder=2)
                 
                 ax.fill_between(mean_times,
@@ -372,22 +372,22 @@ def plotTimeSerieStats(df: pd.DataFrame, freq: str = "D", hop_interval: str = "w
                 mean_times_all=start + pd.to_timedelta(all_days_stats.index, unit="s")
                 
                 ax.plot(mean_times_all, all_days_stats['mean'].values,
-                       label=f'Moyenne de tous les jours ({len(stats_filtered["period_start"].unique())} jours)',
+                       label=f'Average of all days ({len(stats_filtered["period_start"].unique())} days)',
                        linewidth=2, linestyle=':', color='#F18F01', zorder=2)
                 
                 ax.fill_between(mean_times_all,
                                all_days_stats['mean'] - all_days_stats['std'],
                                all_days_stats['mean'] + all_days_stats['std'],
                                alpha=0.15, color='#F18F01',
-                               label='± 1 σ (tous les jours)', zorder=1)
+                               label='± 1 σ (every day)', zorder=1)
             
-            ax.set_ylabel("Nombre de paquets")
+            ax.set_ylabel("Packet number")
             ax.set_xlabel("Date")
             ax.set_xlim(left=start, right=Copie.index.max())
             ax.grid(True, alpha=0.3)
             ax.legend()
             
-            nom = f"Statistiques Nombre de paquets par {nom_freq.get(freq)} a partir de {start.strftime(date_format)} à {end.strftime(date_format)}"
+            nom = f"Statistics and Packet number by {nom_freq.get(freq)} from {start.strftime(date_format)} to {end.strftime(date_format)}"
             ax.set_title(nom)
             nom=f"{start.strftime(date_format)}-{end.strftime(date_format)}"
             plot_file = os.path.join(plot_dir,"Stats", f"{nom}.webp")
@@ -408,7 +408,7 @@ def plotTimeSerieStats(df: pd.DataFrame, freq: str = "D", hop_interval: str = "w
             timeSerie = Copie.resample(freq).size().dropna()
             
             weekday = start.weekday()
-            weekday_names = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche']
+            weekday_names = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'staturday', 'sunday']
             weekday_name = weekday_names[weekday]
             
             stats_filtered = stats_df[stats_df['period_start'] != start]
@@ -421,11 +421,11 @@ def plotTimeSerieStats(df: pd.DataFrame, freq: str = "D", hop_interval: str = "w
             fig, ax = plt.subplots(figsize=(14, 7))
             
             if len(timeSerie) == 1:
-                ax.bar(timeSerie.index, timeSerie.values, width=0.5, color='#2E86AB', label='Période actuelle')
+                ax.bar(timeSerie.index, timeSerie.values, width=0.5, color='#2E86AB', label='Currend period')
             else:
                 ax.plot(timeSerie.index, timeSerie.values,
                        linewidth=2.5, marker='o', markersize=5, color='#2E86AB', 
-                       label=f'Période du {start.strftime(date_format)}', zorder=3)
+                       label=f'Period of {start.strftime(date_format)}', zorder=3)
             
             if len(same_weekday_stats) > 0:
                 mean_times =start + pd.to_timedelta(same_weekday_stats.index, unit="s")
@@ -436,7 +436,7 @@ def plotTimeSerieStats(df: pd.DataFrame, freq: str = "D", hop_interval: str = "w
                 if len(mean_times_filtered) > 0:
                     ax.plot(mean_times_filtered, mean_vals,
                            linewidth=2, linestyle='--', color='#A23B72',
-                           label=f'Moyenne {weekday_name}s', zorder=2)
+                           label=f'Average {weekday_name}s', zorder=2)
                     
                     ax.fill_between(mean_times_filtered,
                                    mean_vals - std_vals,
@@ -453,21 +453,21 @@ def plotTimeSerieStats(df: pd.DataFrame, freq: str = "D", hop_interval: str = "w
                 if len(mean_times_all_filtered) > 0:
                     ax.plot(mean_times_all_filtered, mean_vals_all,
                            linewidth=2, linestyle=':', color='#F18F01',
-                           label='Moyenne tous jours', zorder=2)
+                           label='Average of all days', zorder=2)
                     
                     ax.fill_between(mean_times_all_filtered,
                                    mean_vals_all - std_vals_all,
                                    mean_vals_all + std_vals_all,
                                    alpha=0.15, color='#F18F01',
-                                   label='± 1 σ (tous)', zorder=1)
+                                   label='± 1 σ (all)', zorder=1)
             
             ax.set_xlim(left=start, right=Copie.index.max())
-            ax.set_ylabel("Nombre de paquets")
+            ax.set_ylabel("Packet number")
             ax.set_xlabel("Date")
             ax.grid(True, alpha=0.3)
             ax.legend()
             
-            nom = f"Statistiques Nombre de paquets par {nom_freq.get(freq, freq)} a partir de {start.strftime('%d-%m-%Y')} a {end.strftime('%d-%m-%Y')}"
+            nom = f"Statistics and number of packets by {nom_freq.get(freq, freq)} from {start.strftime('%d-%m-%Y')} to {end.strftime('%d-%m-%Y')}"
             ax.set_title(nom)
             nom=f"{start.strftime(date_format)}-{end.strftime(date_format)}"
             plot_file = os.path.join(plot_dir,"Stats", f"{nom}.webp")
