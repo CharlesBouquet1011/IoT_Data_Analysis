@@ -31,7 +31,7 @@ export function AnalysisMenu({ onChoice }){
             <label className="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer flex items-center justify-between">
             <div>
                 <div className="font-medium text-gray-800">Régression / Prédiction</div>
-                <div className="text-sm text-gray-500">ajouter une description</div>
+                <div className="text-sm text-gray-500">Essaie de trouver les paramètres physiques qui impactent le plus une modélisation</div>
             </div>
             <input type="radio" name="analysis" value={1} checked={selection===1} onChange={()=>choose(1)} />
             </label>
@@ -39,7 +39,7 @@ export function AnalysisMenu({ onChoice }){
             <label className="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer flex items-center justify-between">
             <div>
                 <div className="font-medium text-gray-800">Analyse de la saisonnalité</div>
-                <div className="text-sm text-gray-500">ajouter une description</div>
+                <div className="text-sm text-gray-500">Cherche à dégager des tendances saisonnières</div>
             </div>
             <input type="radio" name="analysis" value={2} checked={selection===2} onChange={()=>choose(2)} />
             </label>
@@ -47,7 +47,7 @@ export function AnalysisMenu({ onChoice }){
             <label className="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer flex items-center justify-between">
             <div>
                 <div className="font-medium text-gray-800">Clustering</div>
-                <div className="text-sm text-gray-500">ajouter une description</div>
+                <div className="text-sm text-gray-500">Plots 2D de  paramètres physiques entre eux</div>
             </div>
             <input type="radio" name="analysis" value={3} checked={selection===3} onChange={()=>choose(3)} />
             </label>
@@ -57,13 +57,6 @@ export function AnalysisMenu({ onChoice }){
                 <div className="text-sm text-gray-500">Statistiques diverses (répartitions de l'utilisation de différents paramètres)</div>
             </div>
             <input type="radio" name="analysis" value={4} checked={selection===5} onChange={()=>choose(4)} />
-            </label>
-            <label className="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer flex items-center justify-between">
-            <div>
-                <div className="font-medium text-gray-800">MODÈLE DE CHOIX POUR LE MENU</div>
-                <div className="text-sm text-gray-500">ajouter une description</div>
-            </div>
-            <input type="radio" name="analysis" value={5} checked={selection===6} onChange={()=>choose(6)} />
             </label>
         </div>
 

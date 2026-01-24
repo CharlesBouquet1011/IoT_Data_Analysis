@@ -30,19 +30,19 @@ os.makedirs(os.path.join(plot_dir,"Global"),exist_ok=True)
 os.makedirs(os.path.join(plot_dir,"Stats"),exist_ok=True)
 
 nom_freq = {
-    "s": "seconde",      # Pour du debugging très fin
-    "10s": "10 secondes", # Monitoring temps réel
-    "30s": "30 secondes", # Monitoring temps réel
+    "s": "second",      # Pour du debugging très fin
+    "10s": "10 seconds", # Monitoring temps réel
+    "30s": "30 seconds", # Monitoring temps réel
     "min": "minute",      # Analyse fine du trafic
     "5min": "5 minutes",  # Standard pour métriques IoT
     "10min": "10 minutes",
     "15min": "15 minutes", # Très courant (quart d'heure)
     "30min": "30 minutes", # Demi-heure
-    "h": "heure",
-    "D": "jour",
-    "W": "semaine",
-    "ME": "mois",         # Month End (plus précis que "M")
-    "YE": "année"         # Year End (plus précis que "Y")
+    "h": "hour",
+    "D": "day",
+    "W": "week",
+    "ME": "month",         # Month End (plus précis que "M")
+    "YE": "year"         # Year End (plus précis que "Y")
 }
     # Formats de date en fonction de hop_interval
 date_formats = {
