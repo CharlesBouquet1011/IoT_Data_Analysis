@@ -1,58 +1,330 @@
-The plots are in english for a better global understanding of our work but the interface isn't. Please feel free to use Google Traduction integration within the browser to translate from french to english. The Readme is written in French as well for a better time efficiency.
+<div align="center">
 
-# Lancer le projet
-Je conseille d'installer [Docker](https://docs.docker.com/engine/install/) si ce n'est pas déjà fait. Le projet tournera difficilement sans.
+# 📡 IoT Data Analysis Platform
 
-Dans le répertoire du projet, faire tout simplement `docker-compose up -d`
-Cette commande lancera un nginx, un backend Python et un frontend React.
+### Analyse et visualisation de données LoRaWAN
 
-Pour accéder à l'interface graphique, allez sur http://localhost .
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENCE)
+[![Python](https://img.shields.io/badge/Python-3.14+-green.svg)](https://www.python.org/)
+[![React](https://img.shields.io/badge/React-19.2+-61DAFB.svg?logo=react)](https://reactjs.org/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker)](https://www.docker.com/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Latest-009688.svg?logo=fastapi)](https://fastapi.tiangolo.com/)
 
-Si React ne fonctionne pas ou pour mettre à jour les librairies utilisées:
-`docker-compose exec react sh`
-`npm install`
-`exit`
-# Interface Graphique:
+*Plateforme complète d'analyse de trafic IoT avec prétraitement automatisé, clustering, régression et prédiction de dispositifs*
+
+---
+
+🌍 *The plots are in English for global accessibility. The interface is in French.*  
+*Feel free to use Google Translate integration within your browser.*
+
+</div>
+
+---
+
+## 📋 Table des matières
+
+- [🎯 Présentation](#-présentation)
+- [✨ Fonctionnalités](#-fonctionnalités)
+- [🏗️ Architecture](#️-architecture)
+- [🚀 Installation](#-installation)
+- [📖 Guide d'utilisation](#-guide-dutilisation)
+- [🔧 Stack Technique](#-stack-technique)
+- [📁 Structure du projet](#-structure-du-projet)
+- [🤝 Contributeurs](#-contributeurs)
+- [📄 Licence](#-licence)
+
+---
+
+## 🎯 Présentation
+
+Cette plateforme permet d'analyser des **données de trafic LoRaWAN** collectées sur un réseau IoT réel. Elle offre des outils de **prétraitement**, **visualisation**, **analyse statistique** et **prédiction par machine learning**.
+
+Le projet a été développé dans le cadre du cours **SIR Data Analysis for Internet of Things** du département Télécommunications de l'**INSA Lyon**, encadré par **Fabrice Valois** et **Oana Iova**.
+
+Les données analysées proviennent des **deux antennes LoRaWAN du campus de la Doua**.
+
+---
+
+## ✨ Fonctionnalités
+
+### 📊 Prétraitement des données
+| Fonctionnalité | Description |
+|----------------|-------------|
+| **Upload de fichiers** | Import de données JSON brutes (données d'un mois complet) |
+| **Filtrage intelligent** | Suppression des valeurs indéfinies et aberrantes |
+| **Rolling window** | Paramétrage flexible des intervalles d'agrégation |
+| **Export optimisé** | Conversion en format Parquet pour de meilleures performances I/O |
+
+### 📈 Analyse et Traitement
+| Module | Description |
+|--------|-------------|
+| **🔄 Régression** | Modèles IA (HistGradientBoostingRegressor) pour prédire RSSI/SNR et identifier les paramètres physiques les plus impactants |
+| **📅 Saisonnalité** | Analyse temporelle multi-échelle (seconde → année) du trafic réseau |
+| **🎯 Clustering** | Visualisation 1D/2D/3D de la répartition des paquets selon les métriques (Airtime, BitRate, RSSI, SNR...) |
+| **📊 Statistiques** | Tableaux de bord : proportion ADR, répartition par type de paquet, analyse par gateway |
+
+### 🔮 Prédiction de dispositifs
+| Approche | Cas d'usage |
+|----------|-------------|
+| **Dev_EUI** | Identification de dispositifs via leur empreinte radio (anti-spoofing) |
+| **Dev_Add** | Estimation du nombre de devices sur le réseau (adresses changeantes) |
+
+---
+
+## 🏗️ Architecture
+
+![Architecture](ReadmeImgs/diagram.png)
+
+---
+
+## 🚀 Installation
+
+### Prérequis
+
+- [Docker](https://docs.docker.com/engine/install/) (obligatoire)
+- [Docker Compose](https://docs.docker.com/compose/install/)
+
+### Démarrage rapide
+
+```bash
+# 1. Cloner le repository
+git clone <repository-url>
+cd IoT_Data_Analysis
+
+# 2. Lancer l'application
+docker-compose up -d
+
+# 3. Accéder à l'interface
+# 🌐 http://localhost
+```
+
+### Commandes utiles
+
+```bash
+# Voir les logs en temps réel
+docker-compose logs -f
+
+# Arrêter les services
+docker-compose down
+
+# Reconstruire les images
+docker-compose up -d --build
+
+# Mise à jour des dépendances React
+docker-compose exec react sh -c "npm install && exit"
+
+# Accéder au shell du backend Python
+docker-compose exec backend sh
+```
+
+---
+
+## 📖 Guide d'utilisation
+
+### 1️⃣ Préparation des données
 
 ![Interface graphique](ReadmeImgs/interface.png)
 
-# Préparation des données:
-Une fois sur l'interface graphique, cliquez sur "Upload", choississez vos données à upload. Ces données doivent être les données d'un mois entier.
-Une fois téléchargées, vous pouvez maintenant choisir sur quels paramètres seront appliqués le prétraitement des données pour filtrer les valeurs aberrantes (pour plus d'informations, voir notre rapport technique).
+1. **Upload** : Cliquez sur "Upload" et sélectionnez votre fichier JSON (données d'un mois complet)
+2. **Configuration** : Choisissez les paramètres de prétraitement :
+   - Sélection des attributs à conserver
+   - Méthode de filtrage des valeurs aberrantes
+   - Intervalle de rolling window
+3. **Traitement** : Patientez pendant le prétraitement automatique
 
-Attendez un peu, et voilà vos données sont prêtes à être exploitées !
+### 2️⃣ Exploitation des données
 
-# Exploitation des données:
-Vous pouvez maintenant choisir entre traitement et Prédiction
+#### 🔄 Régression / Prédiction
+Entraîne des modèles de machine learning pour :
+- Prédire le **RSSI** et le **SNR**
+- Identifier l'**importance des features** (permutation importance)
+- Visualiser les corrélations entre paramètres physiques
 
-# Traitement:
-Dans ce menu, vous pouvez choisir entre plusieurs options:
-- Régression/prédiction entraîne un modèle d'IA pour dégager une tendance dans les données et pour trouver quelles paramètres physiques impactent le plus une prédiction
-- Analyse de la saisonnalité fait des plots à diverses échelles pour voir si le traffic d'un réseau LoRaWan est saisonnier comme dans un réseau classique avec du traffic humain.
-- Clustering permet de plot un paramètre physique en fonction d'un ou de deux autres paramètres physiques pour essayer de trouver à vue d'oeil des corrélations.
-- Statistiques vous permet de plot diverses statistiques générales du réseau afin de dégager une compréhension globale de l'utilisation du réseau: proportion des paquets qui utilisent un paramètre, répartition par type parmis ces paquets qui utilisent ce paramètre, ...
+#### 📅 Analyse de saisonnalité
+Génère des graphiques à différentes échelles temporelles :
+- Par seconde / minute / heure
+- Par jour / semaine / mois
+- Comparaison avec des patterns de trafic humain classique
 
-# Prédiction:
-Dans cette partie, on essaie de rassembler les paquets par leur empreinte physique pour éviter le spoofind dans le cadre du Dev_Eui ou pour trouver le nombre de devices dans le réseau dans le cadre du Dev_Add
-On peut soit se baser sur le Dev_Eui (peu de données) ou le Dev_Add (beaucoup de données mais ce paramètre change fréquemment au cours des communications).
+#### 🎯 Clustering
+Visualisation de la répartition des paquets :
+- Graphiques 1D, 2D ou 3D
+- Métriques disponibles : `Airtime`, `BitRate`, `RSSI`, `SNR`, `SF`, `Bandwidth`...
 
+#### 📊 Statistiques
+Tableaux de bord complets :
+- Proportion de paquets par type (Confirmed Data Up/Down, Join Request...)
+- Répartition ADR (Adaptive Data Rate)
+- Analyse par gateway (`GW_EUI`)
+- Distribution des opérateurs
 
-# Librairies utilisées
-- FastAPI (pour les requêtes http backend)
-- uvicorn pour l'autoreload et serve le backend
-- Pandas  (pour le traitement des données)
-- scikit-learn pour les entraînements d'arbres de décisions
-- hdbscan pour le clustering dans la section prédiction
-- ijson pour lire des jsons lignes par ligne (pour les gros volumes de données)
-- pyarrow pour écrire des .parquets
-- cachetool pour optimiser quelque peu sur des faibles volumes de données
-- Matplotlib pour les plot
-- React Js pour l'interface graphique
+### 3️⃣ Prédiction de dispositifs
 
+| Mode | Description | Données |
+|------|-------------|---------|
+| **Dev_EUI** | Identification du dispositif par empreinte radio | Peu de données (Join Request uniquement) |
+| **Dev_Add** | Groupement de paquets par caractéristiques physiques | Beaucoup de données (adresse changeante) |
 
-### Contexte
-Titouan Verdier, Paul-Henri Lucotte, David Magoudaya, Charles Bouquet.
-Nous devions analyser des données dans le cadre du projet SIR Data Analysis for Internet of Things du département Télécommunications à l'INSA Lyon encadré par Fabrice Valois et Oana Iova. Les données sur lesquelles nous travaillions sont issues de données réelles prélevées sur les deux antennes du campus de la Doua par Fabrice Valois et Oana Iova.
+**Cas d'usage** :
+- 🛡️ **Anti-spoofing** : Détecter les paquets usurpant une identité
+- 📱 **Inventaire** : Estimer le nombre réel de devices sur le réseau
 
-![Logo INSA](https://www.insa-lyon.fr/sites/www.insa-lyon.fr/files/logo-version1.jpg)
-![Logo TC](https://media.licdn.com/dms/image/v2/C4D1BAQH1qpNIX74MqQ/company-background_10000/company-background_10000/0/1583771497171/tcinsalyon_cover?e=2147483647&v=beta&t=iPtkU0fWyDY_rm0la5reWqcORwoLDZa8BBaGEDF4Wuc)
+---
+
+## 🔧 Stack Technique
+
+### Backend
+| Technologie | Utilisation |
+|-------------|-------------|
+| ![Python](https://img.shields.io/badge/-Python-3776AB?style=flat&logo=python&logoColor=white) **Python 3.14** | Langage principal |
+| ![FastAPI](https://img.shields.io/badge/-FastAPI-009688?style=flat&logo=fastapi&logoColor=white) **FastAPI** | API REST haute performance |
+| ![Uvicorn](https://img.shields.io/badge/-Uvicorn-499848?style=flat) **Uvicorn** | Serveur ASGI avec hot-reload |
+| ![Pandas](https://img.shields.io/badge/-Pandas-150458?style=flat&logo=pandas&logoColor=white) **Pandas** | Manipulation de données |
+| ![scikit-learn](https://img.shields.io/badge/-scikit--learn-F7931E?style=flat&logo=scikit-learn&logoColor=white) **scikit-learn** | Machine Learning (régression, classification) |
+| ![HDBSCAN](https://img.shields.io/badge/-HDBSCAN-4B0082?style=flat) **HDBSCAN** | Clustering densité-based |
+| ![Matplotlib](https://img.shields.io/badge/-Matplotlib-11557c?style=flat) **Matplotlib** | Génération de graphiques |
+| **ijson** | Parsing JSON streaming (gros volumes) |
+| **PyArrow** | Export format Parquet optimisé |
+| **cachetools** | Mise en cache intelligente |
+
+### Frontend
+| Technologie | Utilisation |
+|-------------|-------------|
+| ![React](https://img.shields.io/badge/-React-61DAFB?style=flat&logo=react&logoColor=black) **React 19** | Framework UI |
+| ![TailwindCSS](https://img.shields.io/badge/-TailwindCSS-06B6D4?style=flat&logo=tailwindcss&logoColor=white) **Tailwind CSS 4** | Styling utilitaire |
+| **react-dropzone** | Upload drag & drop |
+| **react-datepicker** | Sélection de dates |
+| **react-router-dom** | Navigation SPA |
+
+### Infrastructure
+| Technologie | Utilisation |
+|-------------|-------------|
+| ![Docker](https://img.shields.io/badge/-Docker-2496ED?style=flat&logo=docker&logoColor=white) **Docker** | Conteneurisation |
+| ![NGINX](https://img.shields.io/badge/-NGINX-009639?style=flat&logo=nginx&logoColor=white) **NGINX** | Reverse proxy & serveur statique |
+
+---
+
+## 📁 Structure du projet
+
+```
+IoT_Data_Analysis/
+│
+├── 🐳 docker-compose.yml      # Orchestration des services
+├── 🐳 Dockerfile              # Build multi-stage (backend, react, nginx)
+├── ⚙️  default.conf            # Configuration NGINX
+│
+├── 🐍 backend/
+│   ├── server/
+│   │   ├── main.py            # Point d'entrée FastAPI
+│   │   ├── models/            # Schémas Pydantic
+│   │   └── routes/            # Endpoints API
+│   │       ├── clustering.py
+│   │       ├── regression.py
+│   │       ├── stats.py
+│   │       └── trends.py
+│   │
+│   ├── preprocessing/
+│   │   ├── preprocessing.py   # Interface Tkinter (mode local)
+│   │   ├── automaticPreProcessing.py
+│   │   ├── flatten_datas.py   # Aplatissement JSON
+│   │   ├── useData.py         # Chargement données
+│   │   └── GUIDE.md           # Documentation prétraitement
+│   │
+│   └── data_processing/
+│       ├── clustering/
+│       │   ├── clustering.py          # Visualisation clustering
+│       │   ├── predict_dev_add/       # Prédiction par Dev_Add
+│       │   └── predict_dev_eui/       # Prédiction par Dev_EUI
+│       ├── regression/
+│       │   └── regression.py          # Modèles RSSI/SNR
+│       ├── stats/
+│       │   ├── paquets.py             # Statistiques paquets
+│       │   ├── adr.py                 # Analyse ADR
+│       │   └── devices.py             # Analyse devices
+│       └── trends_analysis/
+│           └── trends_analysis.py     # Analyse saisonnalité
+│
+├── ⚛️  frontend/
+│   ├── package.json
+│   ├── tailwind.config.js
+│   ├── public/
+│   │   └── index.html
+│   └── src/
+│       ├── App.js
+│       ├── menu/
+│       │   └── Menu.jsx               # Navigation principale
+│       ├── preprocessing/
+│       │   ├── DropFile.jsx           # Upload fichiers
+│       │   └── AnalysisMenu.jsx       # Menu d'analyse
+│       ├── data_processing/
+│       │   ├── Clustering.jsx
+│       │   ├── Regression.jsx
+│       │   ├── Stat.jsx
+│       │   └── Trends.jsx
+│       └── prediction/
+│           ├── DevicePredictionDevAdd.jsx
+│           └── DevicePredictionDevEUI.jsx
+│
+└── 🖼️  ReadmeImgs/
+    └── interface.png
+```
+
+---
+
+## 🤝 Contributeurs
+
+<table>
+  <tr>
+    <td align="center">
+      <b>Titouan Verdier</b><br>
+      <sub>Preprocessing & Data Pipeline</sub>
+    </td>
+    <td align="center">
+      <b>Paul-Henri Lucotte</b><br>
+      <sub>Data Analysis</sub>
+    </td>
+    <td align="center">
+      <b>David Magoudaya</b><br>
+      <sub>Trends Analysis</sub>
+    </td>
+    <td align="center">
+      <b>Charles Bouquet</b><br>
+      <sub>Architecture & DevOps</sub>
+    </td>
+  </tr>
+</table>
+
+### Encadrement
+
+- **Fabrice Valois** - INSA Lyon, Département Télécommunications
+- **Oana Iova** - INSA Lyon, Département Télécommunications
+
+---
+
+## 📄 Licence
+
+Ce projet est sous licence **Apache 2.0**. Voir le fichier [LICENCE](LICENCE) pour plus de détails.
+
+---
+
+<div align="center">
+
+### 🏛️ Réalisé à l'INSA Lyon
+
+**Département Télécommunications - Projet SIR Data Analysis for IoT**
+
+<br>
+
+<img src="https://www.insa-lyon.fr/sites/www.insa-lyon.fr/files/logo-version1.jpg" alt="Logo INSA" height="80">
+&nbsp;&nbsp;&nbsp;&nbsp;
+<img src="https://media.licdn.com/dms/image/v2/C4D1BAQH1qpNIX74MqQ/company-background_10000/company-background_10000/0/1583771497171/tcinsalyon_cover?e=2147483647&v=beta&t=iPtkU0fWyDY_rm0la5reWqcORwoLDZa8BBaGEDF4Wuc" alt="Logo TC" height="80">
+
+<br><br>
+
+*Les données analysées proviennent des antennes LoRaWAN du campus de la Doua*
+
+---
+
+⭐ **N'hésitez pas à star le projet si vous le trouvez utile !** ⭐
+
+</div>
