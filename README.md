@@ -43,6 +43,12 @@ Le projet a été développé dans le cadre du cours **SIR Data Analysis for Int
 
 Les données analysées proviennent des **deux antennes LoRaWAN du campus de la Doua**.
 
+**Objectifs** :
+- 🛡️ **Anti-spoofing** : Détecter les paquets usurpant une identité
+- 📱 **Dimensionnement** : Estimer le nombre réel de devices sur le réseau et les tendances d'utilisation des ressources radios
+- ⚡ **Optimisation réseau**: Regarder comment un réseau réel est utilisé pour adapter l'architecture réseau (emplacement des antennes, ADR, ...)
+
+
 ---
 
 ## ✨ Fonctionnalités
@@ -165,10 +171,6 @@ Tableaux de bord complets :
 | **Dev_EUI** | Identification du dispositif par empreinte radio | Peu de données (Join Request uniquement) |
 | **Dev_Add** | Groupement de paquets par caractéristiques physiques | Beaucoup de données (adresse changeante) |
 
-**Cas d'usage** :
-- 🛡️ **Anti-spoofing** : Détecter les paquets usurpant une identité
-- 📱 **Dimensionnement** : Estimer le nombre réel de devices sur le réseau et les tendances d'utilisation des ressources radios
-- ⚡ **Optimisation réseau**: Regarder comment un réseau réel est utilisé pour adapter l'architecture réseau (emplacement des antennes, ADR, ...)
 ---
 
 ## 🔧 Stack Technique
