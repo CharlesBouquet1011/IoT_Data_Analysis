@@ -167,8 +167,8 @@ Tableaux de bord complets :
 
 **Cas d'usage** :
 - 🛡️ **Anti-spoofing** : Détecter les paquets usurpant une identité
-- 📱 **Inventaire** : Estimer le nombre réel de devices sur le réseau
-
+- 📱 **Dimensionnement** : Estimer le nombre réel de devices sur le réseau et les tendances d'utilisation des ressources radios
+- ⚡ **Optimisation réseau**: Regarder comment un réseau réel est utilisé pour adapter l'architecture réseau (emplacement des antennes, ADR, ...)
 ---
 
 ## 🔧 Stack Technique
@@ -244,29 +244,27 @@ IoT_Data_Analysis/
 │       └── trends_analysis/
 │           └── trends_analysis.py     # Analyse saisonnalité
 │
-├── ⚛️  frontend/
-│   ├── package.json
-│   ├── tailwind.config.js
-│   ├── public/
-│   │   └── index.html
-│   └── src/
-│       ├── App.js
-│       ├── menu/
-│       │   └── Menu.jsx               # Navigation principale
-│       ├── preprocessing/
-│       │   ├── DropFile.jsx           # Upload fichiers
-│       │   └── AnalysisMenu.jsx       # Menu d'analyse
-│       ├── data_processing/
-│       │   ├── Clustering.jsx
-│       │   ├── Regression.jsx
-│       │   ├── Stat.jsx
-│       │   └── Trends.jsx
-│       └── prediction/
-│           ├── DevicePredictionDevAdd.jsx
-│           └── DevicePredictionDevEUI.jsx
-│
-└── 🖼️  ReadmeImgs/
-    └── interface.png
+└── ⚛️  frontend/
+    ├── package.json
+    ├── tailwind.config.js
+    ├── public/
+    │   └── index.html
+    └── src/
+        ├── App.js
+        ├── menu/
+        │   └── Menu.jsx               # Navigation principale
+        ├── preprocessing/
+        │   ├── DropFile.jsx           # Upload fichiers
+        │   └── AnalysisMenu.jsx       # Menu d'analyse
+        ├── data_processing/
+        │   ├── Clustering.jsx
+        │   ├── Regression.jsx
+        │   ├── Stat.jsx
+        │   └── Trends.jsx
+        └── prediction/
+            ├── DevicePredictionDevAdd.jsx
+            └── DevicePredictionDevEUI.jsx
+
 ```
 
 ---
@@ -277,27 +275,27 @@ IoT_Data_Analysis/
   <tr>
     <td align="center">
       <b>Titouan Verdier</b><br>
-      <sub>Preprocessing & Data Pipeline</sub>
+      <sub>3D Plots & AI Clustering</sub>
     </td>
     <td align="center">
       <b>Paul-Henri Lucotte</b><br>
-      <sub>Data Analysis</sub>
+      <sub>AI Regression and Trends Prediction</sub>
     </td>
     <td align="center">
       <b>David Magoudaya</b><br>
-      <sub>Trends Analysis</sub>
+      <sub>Plot Analysis</sub>
     </td>
     <td align="center">
       <b>Charles Bouquet</b><br>
-      <sub>Architecture & DevOps</sub>
+      <sub>Architecture, Stats & DevOps</sub>
     </td>
   </tr>
 </table>
 
 ### Encadrement
 
-- **Fabrice Valois** - INSA Lyon, Département Télécommunications
-- **Oana Iova** - INSA Lyon, Département Télécommunications
+- **Fabrice Valois** - INSA Lyon/INRIA Agora, Département Télécommunications
+- **Oana Iova** - INSA Lyon/INRIA Agora, Département Télécommunications
 
 ---
 
@@ -321,7 +319,7 @@ Ce projet est sous licence **Apache 2.0**. Voir le fichier [LICENCE](LICENCE) po
 
 <br><br>
 
-*Les données analysées proviennent des antennes LoRaWAN du campus de la Doua*
+*Les données analysées dans le rapport proviennent des antennes LoRaWAN du campus de la Doua*
 
 ---
 
